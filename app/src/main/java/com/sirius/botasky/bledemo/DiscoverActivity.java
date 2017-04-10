@@ -125,6 +125,9 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
 
     }
 
+    /**
+     * 动态获取权限
+     */
     private void setupPermissions() {
         RxPermissions rxPermissions = new RxPermissions(this);
         rxPermissions.request(
@@ -158,13 +161,14 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
         if (!enableBle()) {
             return;
         }
+        //判断权限是否都有
         RxPermissions rxPermissions = new RxPermissions(this);
         if (rxPermissions.isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
                 && rxPermissions.isGranted(Manifest.permission.ACCESS_FINE_LOCATION)
                 && rxPermissions.isGranted(Manifest.permission.BLUETOOTH)
                 && rxPermissions.isGranted(Manifest.permission.BLUETOOTH_ADMIN)) {
             if (isScaning) {
-                Snackbar.make(mScanButton," is scanning now ", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(mScanButton, " is scanning now ", Snackbar.LENGTH_LONG).show();
                 return;
             }
             mRecyclerAdapter.clear();
@@ -262,13 +266,22 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
             ViewHolder viewHolder = ((ViewHolder) holder);
-            BluetoothDevice device = devices.get(position);
+            final BluetoothDevice device = devices.get(position);
             final String deviceName = device.getName();
             if (deviceName != null && deviceName.length() > 0)
                 viewHolder.deviceName.setText(deviceName);
             else
                 viewHolder.deviceName.setText("Unknow");
             viewHolder.deviceAddress.setText(device.getAddress());
+
+            viewHolder.content.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(DiscoverActivity.this, ConnectActivity.class);
+                    intent.putExtra(ConnectActivity.DEVICE_ADDRESS, device.getAddress());
+                    startActivity(intent);
+                }
+            });
         }
 
         @Override
@@ -276,7 +289,7 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
             return devices.size();
         }
 
-        class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        class ViewHolder extends RecyclerView.ViewHolder {
             private LinearLayout content;
             private TextView deviceName;
             private TextView deviceAddress;
@@ -286,13 +299,8 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 content = ((LinearLayout) itemView.findViewById(R.id.content));
                 deviceAddress = ((TextView) itemView.findViewById(R.id.device_address));
                 deviceName = (TextView) itemView.findViewById(R.id.device_name);
-                content.setOnClickListener(this);
             }
 
-            @Override
-            public void onClick(View v) {
-
-            }
         }
     }
 }

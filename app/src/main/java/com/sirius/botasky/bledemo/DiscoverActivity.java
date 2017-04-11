@@ -68,6 +68,9 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
 
     }
 
+
+
+
     /**
      * 获取BluetoothAdapter
      */
@@ -172,7 +175,10 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 return;
             }
             mRecyclerAdapter.clear();
-            mBleAdapter.startLeScan(this);
+//            UUID[] heart = {UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT)};
+
+            mBleAdapter.startLeScan(
+                    this);
             isScaning = true;
             Observable.timer(10, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
@@ -279,6 +285,7 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 public void onClick(View v) {
                     Intent intent = new Intent(DiscoverActivity.this, ConnectActivity.class);
                     intent.putExtra(ConnectActivity.DEVICE_ADDRESS, device.getAddress());
+                    intent.putExtra(ConnectActivity.DEVICE_NAME, device.getName());
                     startActivity(intent);
                 }
             });

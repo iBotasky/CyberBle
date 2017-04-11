@@ -21,9 +21,12 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 连接到GATT服务端，服务端/主机不是手机，是设备
@@ -31,11 +34,12 @@ import java.util.List;
 public class ConnectActivity extends AppCompatActivity {
     private static final String TAG = ConnectActivity.class.getSimpleName();
     public static final String DEVICE_ADDRESS = "device_address";
+    public static final String DEVICE_NAME = "device_name";
 
     private TextView mTvDeviceName;
     private Button connect;
     private Button disconnect;
-
+    private TextView mTvData;
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -46,7 +50,13 @@ public class ConnectActivity extends AppCompatActivity {
 
     private ExpandableListView mExpanList;
 
+
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
+
+    public final static UUID UUID_HEART_RATE_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     //断开状态
     private static final int STATE_DISCONNECTED = 0;
@@ -99,7 +109,7 @@ public class ConnectActivity extends AppCompatActivity {
             Log.e(TAG, "GattServiceDiscover" + status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 //展示获取到的服务
-                dispalayGattServices();
+                displayGattServices();
             }
             Log.e(TAG, "GATTCallback  Service discover " + status);
         }
@@ -113,6 +123,10 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
+            if (status == BluetoothGatt.GATT_SUCCESS){
+                displayData(characteristic);
+            }
+
         }
 
 
@@ -124,12 +138,16 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+            displayData(characteristic);
         }
 
 
     };
 
-    private void dispalayGattServices() {
+    /**
+     * 将获取到的服务展示出来，根据SampleGattAttributes对比，看有；没有符合的服务
+     */
+    private void displayGattServices() {
         List<BluetoothGattService> services = getGattService();
         if (services == null) return;
         String uuid = null;
@@ -170,12 +188,12 @@ public class ConnectActivity extends AppCompatActivity {
                 this,
                 gattServiceData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 },
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2},
                 gattCharacteristicData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 }
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2}
         );
 
         runOnUiThread(new Runnable() {
@@ -187,7 +205,11 @@ public class ConnectActivity extends AppCompatActivity {
         });
     }
 
-
+    /**
+     * 获取服务列表
+     *
+     * @return
+     */
     private List<BluetoothGattService> getGattService() {
         if (mBluetoothGatt != null) {
             return mBluetoothGatt.getServices();
@@ -195,6 +217,58 @@ public class ConnectActivity extends AppCompatActivity {
         Log.e(TAG, "Gatt is null");
         return null;
 
+    }
+
+
+    /**
+     * 展示READ或者NOTIFY特征返回的信息
+     *
+     * @param
+     */
+    private void displayData(BluetoothGattCharacteristic characteristic) {
+        /**
+         * 通用心率协议的NOTIFY特征需要特殊处理
+         */
+        // This is special handling for the Heart Rate Measurement profile.  Data parsing is
+        // carried out as per profile specifications:
+        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            int flag = characteristic.getProperties();
+            int format = -1;
+            if ((flag & 0x01) != 0) {
+                format = BluetoothGattCharacteristic.FORMAT_UINT16;
+                Log.d(TAG, "Heart rate format UINT16.");
+            } else {
+                format = BluetoothGattCharacteristic.FORMAT_UINT8;
+                Log.d(TAG, "Heart rate format UINT8.");
+            }
+            final int heartRate = characteristic.getIntValue(format, 1);
+            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
+            setDataMainThread(String.valueOf(heartRate));
+        } else {
+            // For all other profiles, writes the data formatted in HEX.
+            final byte[] data = characteristic.getValue();
+            if (data != null && data.length > 0) {
+                final StringBuilder stringBuilder = new StringBuilder(data.length);
+                for (byte byteChar : data)
+                    stringBuilder.append(String.format("%02X ", byteChar));
+                setDataMainThread(new String(data) + "\n" + stringBuilder.toString());
+            }
+        }
+    }
+
+    /**
+     * 数据展示要放在主线程展示，否则会报错
+     *
+     * @param data
+     */
+    private void setDataMainThread(final String data){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mTvData.setText(data);
+            }
+        });
     }
 
     @Override
@@ -213,7 +287,11 @@ public class ConnectActivity extends AppCompatActivity {
 
     private void initiailizeView() {
         mTvDeviceName = (TextView) findViewById(R.id.tv_device_name);
+        mTvDeviceName.setText(getIntent().getStringExtra(DEVICE_NAME));
+        mTvData = (TextView) findViewById(R.id.data);
+
         mExpanList = (ExpandableListView) findViewById(R.id.gatt_services_list);
+        mExpanList.setOnChildClickListener(servicesListClickListner);
         connect = (Button) findViewById(R.id.connect);
         disconnect = (Button) findViewById(R.id.diconnect);
 
@@ -230,6 +308,85 @@ public class ConnectActivity extends AppCompatActivity {
             }
         });
 
+
+    }
+
+    // If a given GATT characteristic is selected, check for supported features.  This sample
+    // demonstrates 'Read' and 'Notify' features.  See
+    // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
+    // list of supported characteristic features.
+    /**
+     * 如果一个GATT的特征被选中，
+     */
+    private final ExpandableListView.OnChildClickListener servicesListClickListner =
+            new ExpandableListView.OnChildClickListener() {
+                @Override
+                public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                                            int childPosition, long id) {
+                    if (mGattCharacteristics != null) {
+                        final BluetoothGattCharacteristic characteristic =
+                                mGattCharacteristics.get(groupPosition).get(childPosition);
+                        final int charaProp = characteristic.getProperties();
+                        //判断是否有读特征
+                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                            // If there is an active notification on a characteristic, clear
+                            // it first so it doesn't update the data field on the user interface.
+                            //如果当前有一个NOTIFY的特征正在活动，要先关闭NOTIFY特征，再去开启READ特征
+                            if (mNotifyCharacteristic != null) {
+                                setCharacteristicNotification(mNotifyCharacteristic, false);
+                                mNotifyCharacteristic = null;
+                            }
+                            //开启读特征
+                            readCharacteristic(characteristic);
+                        }
+                        //判断是否是NOTIFY特征
+                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                            mNotifyCharacteristic = characteristic;
+                            setCharacteristicNotification(characteristic, true);
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
+
+    /**
+     * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
+     * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
+     * callback.
+     *
+     * @param characteristic The characteristic to read from.
+     */
+    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.readCharacteristic(characteristic);
+    }
+
+    /**
+     * Enables or disables notification on a give characteristic.
+     *
+     * @param characteristic Characteristic to act on.
+     * @param enabled        If true, enable notification.  False otherwise.
+     */
+    public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
+                                              boolean enabled) {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+        //通用协议心率的NOTIFY特征
+        // This is specific to Heart Rate Measurement.
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            mBluetoothGatt.writeDescriptor(descriptor);
+        }
     }
 
     /**
@@ -259,9 +416,21 @@ public class ConnectActivity extends AppCompatActivity {
         mConnectState = STATE_CONNECTING;//设置当前状态为连接中
     }
 
-    private void disconnect(){
-        if (mBluetoothGatt != null && mBluetoothAdapter != null){
+    private void disconnect() {
+        if (mBluetoothGatt != null && mBluetoothAdapter != null) {
             mBluetoothGatt.disconnect();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        /**
+         * 使用完蓝牙后要调用close，释放系统资源
+         */
+        if (mBluetoothGatt != null) {
+            mBluetoothGatt.close();
+            mBluetoothGatt = null;
         }
     }
 }

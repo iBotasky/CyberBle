@@ -344,11 +344,47 @@ public class ConnectActivity extends AppCompatActivity {
                             mNotifyCharacteristic = characteristic;
                             setCharacteristicNotification(characteristic, true);
                         }
+                        //判断是否是Write特征
+                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_WRITE) > 0){
+                            Log.e(TAG, "Characteristic this is a write characteristic");
+                            writeCharacteristic(characteristic);
+                        }
+
                         return true;
                     }
                     return false;
                 }
             };
+
+    /**
+     * 写特征
+     * @return
+     */
+    public boolean writeCharacteristic(BluetoothGattCharacteristic charac){
+
+        //check mBluetoothGatt is available
+        if (mBluetoothGatt == null) {
+            Log.e(TAG, "lost connection");
+            return false;
+        }
+//        BluetoothGattService Service = mBluetoothGatt.getService(your Services);
+//        if (Service == null) {
+//            Log.e(TAG, "service not found!");
+//            return false;
+//        }
+//        BluetoothGattCharacteristic charac = Service
+//                .getCharacteristic(your characteristic);
+        if (charac == null) {
+            Log.e(TAG, "char not found!");
+            return false;
+        }
+
+        byte[] value = new byte[1];
+        value[0] = (byte) (21 & 0xFF);
+        charac.setValue(value);
+        boolean status = mBluetoothGatt.writeCharacteristic(charac);
+        return status;
+    }
 
 
     /**

@@ -30,9 +30,15 @@ public class SampleGattAttributes {
         // Sample Services.
         attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");
         attributes.put("0000180a-0000-1000-8000-00805f9b34fb", "Device Information Service");
+        attributes.put("6E400001-B5A3-F393-E0A9-E50E24DCCA9E", "Insole Service");//鞋垫服务
+        attributes.put("000026b4-0000-1000-8000-00805f9b34fb", "Megear Service");
         // Sample Characteristics.
         attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
         attributes.put("00002a29-0000-1000-8000-00805f9b34fb", "Manufacturer Name String");
+        attributes.put("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", "Insole Write");//鞋垫写特征
+        attributes.put("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", "Insole Notify");//鞋垫Notify特征
+        attributes.put("6E4026B5-B5A3-F393-E0A9-E50E24DCCA9E", "Megear write");//Megear读
+        attributes.put("6E4026B6-B5A3-F393-E0A9-E50E24DCCA9E", "Megear notify");//megearnotfiy
     }
 
     public static String lookup(String uuid, String defaultName) {

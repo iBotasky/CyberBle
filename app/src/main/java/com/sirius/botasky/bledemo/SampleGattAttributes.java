@@ -30,7 +30,7 @@ public class SampleGattAttributes {
         // Sample Services.
         attributes.put("0000180d-0000-1000-8000-00805f9b34fb", "Heart Rate Service");
         attributes.put("0000180a-0000-1000-8000-00805f9b34fb", "Device Information Service");
-        attributes.put("6E400001-B5A3-F393-E0A9-E50E24DCCA9E", "Insole Service");//鞋垫服务
+        attributes.put("6e400001-b5a3-f393-e0a9-e50e24dcca9e", "Insole Service");//鞋垫服务6E400001-B5A3-F393-E0A9-E50E24DCCA9E
         attributes.put("000026b4-0000-1000-8000-00805f9b34fb", "Megear Service");
         // Sample Characteristics.
         attributes.put(HEART_RATE_MEASUREMENT, "Heart Rate Measurement");
@@ -42,7 +42,10 @@ public class SampleGattAttributes {
     }
 
     public static String lookup(String uuid, String defaultName) {
-        String name = attributes.get(uuid);
-        return name == null ? defaultName : name;
+        String low = attributes.get(uuid.toLowerCase());
+        String up = attributes.get(uuid.toUpperCase());
+
+        String name = low == null ? (up == null ? defaultName : up) : low;
+        return name;
     }
 }

@@ -39,6 +39,7 @@ public class ConnectActivity extends AppCompatActivity {
     private TextView mTvDeviceName;
     private Button connect;
     private Button disconnect;
+    private Button write;
     private TextView mTvData;
 
     private BluetoothManager mBluetoothManager;
@@ -142,6 +143,16 @@ public class ConnectActivity extends AppCompatActivity {
         }
 
 
+        /**
+         * 返回一个写特征的操作结果
+         * @param gatt
+         * @param characteristic
+         * @param status
+         */
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+        }
     };
 
     /**
@@ -294,6 +305,7 @@ public class ConnectActivity extends AppCompatActivity {
         mExpanList.setOnChildClickListener(servicesListClickListner);
         connect = (Button) findViewById(R.id.connect);
         disconnect = (Button) findViewById(R.id.diconnect);
+        write = (Button) findViewById(R.id.write);
 
         connect.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -307,7 +319,12 @@ public class ConnectActivity extends AppCompatActivity {
                 disconnect();
             }
         });
+        write.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+            }
+        });
 
     }
 
@@ -327,8 +344,7 @@ public class ConnectActivity extends AppCompatActivity {
                         final BluetoothGattCharacteristic characteristic =
                                 mGattCharacteristics.get(groupPosition).get(childPosition);
                         final int charaProp = characteristic.getProperties();
-                        //判断是否有读特征
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
                             // If there is an active notification on a characteristic, clear
                             // it first so it doesn't update the data field on the user interface.
                             //如果当前有一个NOTIFY的特征正在活动，要先关闭NOTIFY特征，再去开启READ特征
@@ -339,13 +355,11 @@ public class ConnectActivity extends AppCompatActivity {
                             //开启读特征
                             readCharacteristic(characteristic);
                         }
-                        //判断是否是NOTIFY特征
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                             mNotifyCharacteristic = characteristic;
                             setCharacteristicNotification(characteristic, true);
                         }
-                        //判断是否是Write特征
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_WRITE) > 0){
+                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0){
                             Log.e(TAG, "Characteristic this is a write characteristic");
                             writeCharacteristic(characteristic);
                         }
@@ -360,7 +374,7 @@ public class ConnectActivity extends AppCompatActivity {
      * 写特征
      * @return
      */
-    public boolean writeCharacteristic(BluetoothGattCharacteristic charac){
+    private boolean writeCharacteristic(BluetoothGattCharacteristic charac){
 
         //check mBluetoothGatt is available
         if (mBluetoothGatt == null) {
@@ -382,6 +396,7 @@ public class ConnectActivity extends AppCompatActivity {
         byte[] value = new byte[1];
         value[0] = (byte) (21 & 0xFF);
         charac.setValue(value);
+        //这边的status是指发送命令的状态，不是指Write成功或者失败的状态， 所以还要一个onChartacteristicWrite的回调，在GattCallBack里面
         boolean status = mBluetoothGatt.writeCharacteristic(charac);
         return status;
     }

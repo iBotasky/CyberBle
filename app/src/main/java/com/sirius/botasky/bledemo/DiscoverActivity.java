@@ -26,7 +26,9 @@ import android.widget.TextView;
 import com.tbruyelle.rxpermissions.RxPermissions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
@@ -180,7 +182,7 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
             mBleAdapter.startLeScan(
                     this);
             isScaning = true;
-            Observable.timer(10, TimeUnit.SECONDS)
+            Observable.timer(5, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Subscriber<Long>() {
@@ -244,15 +246,18 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
     private class BleDeviceAdapter extends RecyclerView.Adapter<BleDeviceAdapter.ViewHolder> {
         private List<BluetoothDevice> devices;
         private LayoutInflater mInflator;
+        private Map<String, Integer> mDevicesRssi;
 
         public BleDeviceAdapter() {
             this.devices = new ArrayList<>();
+            this.mDevicesRssi = new HashMap<>();
             this.mInflator = DiscoverActivity.this.getLayoutInflater();
         }
 
         private void addDevice(BluetoothDevice device, int rssi) {
             if (!devices.contains(device)) {
                 devices.add(device);
+                mDevicesRssi.put(device.getAddress(), rssi);
                 notifyDataSetChanged();
             }
         }
@@ -280,6 +285,8 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 viewHolder.deviceName.setText("Unknow");
             viewHolder.deviceAddress.setText(device.getAddress());
 
+            viewHolder.deviceRssi.setText("" + mDevicesRssi.get(devices.get(position).getAddress()));
+
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -300,12 +307,14 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
             private LinearLayout content;
             private TextView deviceName;
             private TextView deviceAddress;
+            private TextView deviceRssi;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 content = ((LinearLayout) itemView.findViewById(R.id.content));
                 deviceAddress = ((TextView) itemView.findViewById(R.id.device_address));
                 deviceName = (TextView) itemView.findViewById(R.id.device_name);
+                deviceRssi = (TextView) itemView.findViewById(R.id.device_rssi);
             }
 
         }

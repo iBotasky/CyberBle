@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
@@ -177,12 +178,11 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 return;
             }
             mRecyclerAdapter.clear();
-//            UUID[] heart = {UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT)};
+            UUID[] insole = {UUID.fromString(SampleGattAttributes.INSOLE_MEASUREMENT)};
 
-            mBleAdapter.startLeScan(
-                    this);
+            mBleAdapter.startLeScan(insole, this);
             isScaning = true;
-            Observable.timer(5, TimeUnit.SECONDS)
+            Observable.timer(10, TimeUnit.SECONDS)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Subscriber<Long>() {

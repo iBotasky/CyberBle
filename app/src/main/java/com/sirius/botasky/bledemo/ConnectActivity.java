@@ -59,6 +59,9 @@ public class ConnectActivity extends AppCompatActivity {
     public final static UUID UUID_HEART_RATE_MEASUREMENT =
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
+    public final static UUID UUID_INSOLE_MEASUREMENT =
+            UUID.fromString(SampleGattAttributes.INSOLE_MEASUREMENT_NOTIFY);
+
     //断开状态
     private static final int STATE_DISCONNECTED = 0;
     //连接中状态
@@ -124,6 +127,7 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
+            Log.e(TAG,  " onCharacteristicRead call back" );
             if (status == BluetoothGatt.GATT_SUCCESS){
                 displayData(characteristic);
             }
@@ -139,6 +143,7 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+            Log.e(TAG,  " onCharacteristicChange call back" );
             displayData(characteristic);
         }
 
@@ -152,6 +157,7 @@ public class ConnectActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
+            Log.e(TAG, "onCharacteristicWrite " +characteristic.getUuid() + " " +  status);
         }
     };
 
@@ -359,7 +365,8 @@ public class ConnectActivity extends AppCompatActivity {
                             mNotifyCharacteristic = characteristic;
                             setCharacteristicNotification(characteristic, true);
                         }
-                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0){
+                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
+                                && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0){
                             Log.e(TAG, "Characteristic this is a write characteristic");
                             writeCharacteristic(characteristic);
                         }
@@ -393,11 +400,12 @@ public class ConnectActivity extends AppCompatActivity {
             return false;
         }
 
-        byte[] value = new byte[1];
-        value[0] = (byte) (21 & 0xFF);
+        String start = "ES";
+        byte[] value = start.getBytes();
         charac.setValue(value);
         //这边的status是指发送命令的状态，不是指Write成功或者失败的状态， 所以还要一个onChartacteristicWrite的回调，在GattCallBack里面
         boolean status = mBluetoothGatt.writeCharacteristic(charac);
+        Log.e(TAG, " write status " + status);
         return status;
     }
 
@@ -432,7 +440,7 @@ public class ConnectActivity extends AppCompatActivity {
         mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
         //通用协议心率的NOTIFY特征
         // This is specific to Heart Rate Measurement.
-        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid()) || UUID_INSOLE_MEASUREMENT.equals(characteristic.getUuid())) {
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);

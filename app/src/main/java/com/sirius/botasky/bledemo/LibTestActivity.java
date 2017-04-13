@@ -39,6 +39,7 @@ public class LibTestActivity extends AppCompatActivity {
     private BleAdmin mBleAdmin;
     private TextView mNotifyData;
     private ConstraintLayout discover, connect;
+    private String mCurrentDeviceAddress;
 
     private DeviceConnectCallback mDeviceCallBack = new DeviceConnectCallback() {
         @Override
@@ -147,23 +148,11 @@ public class LibTestActivity extends AppCompatActivity {
             this.mInflator = LibTestActivity.this.getLayoutInflater();
         }
 
-        private void addDevice(BluetoothDevice device, int rssi) {
-            if (!devices.contains(device)) {
-                devices.add(device);
-                mDevicesRssi.put(device.getAddress(), rssi);
-                notifyDataSetChanged();
-            }
-        }
-
         private void setDevices(List<BluetoothDevice> devices){
             this.devices = devices;
             notifyDataSetChanged();
         }
 
-
-        private void clear() {
-            devices.clear();
-        }
 
 
         @Override
@@ -189,6 +178,7 @@ public class LibTestActivity extends AppCompatActivity {
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    mCurrentDeviceAddress = devices.get(position).getAddress();
                     mBleAdmin.connectDevice(devices.get(position));
                 }
             });

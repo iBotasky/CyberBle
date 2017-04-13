@@ -303,13 +303,13 @@ public class ConnectActivity extends AppCompatActivity {
     }
 
     private void initiailizeView() {
-        mTvDeviceName = (TextView) findViewById(R.id.tv_device_name);
+//        mTvDeviceName = (TextView) findViewById(R.id.tv_device_name);
         mTvDeviceName.setText(getIntent().getStringExtra(DEVICE_NAME));
         mTvData = (TextView) findViewById(R.id.data);
 
         mExpanList = (ExpandableListView) findViewById(R.id.gatt_services_list);
         mExpanList.setOnChildClickListener(servicesListClickListner);
-        connect = (Button) findViewById(R.id.connect);
+//        connect = (Button) findViewById(R.id.connect);
         disconnect = (Button) findViewById(R.id.diconnect);
         write = (Button) findViewById(R.id.write);
 

@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
 import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
+import com.sirius.botasky.cyberble.callback.OperationResultCallBack;
 
 /**
  * 这个类用来对一个蓝牙设备进行操作的Operator,包括Connect,Read,Write,Notify,
@@ -67,7 +68,9 @@ public class BleDeviceOperator {
 //    };
 
 
-    public BleDeviceOperator(BluetoothDevice mBluetoothDevice, Context mContext, BluetoothGattCallback mBluetoothCattCallback) {
+    public BleDeviceOperator(BluetoothDevice mBluetoothDevice,
+                             Context mContext,
+                             BluetoothGattCallback mBluetoothCattCallback) {
         this.mBluetoothDevice = mBluetoothDevice;
         this.mContext = mContext;
         this.mBluetoothGattCallback = mBluetoothCattCallback;

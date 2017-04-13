@@ -2,55 +2,34 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/connect_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.sirius.botasky.bledemo.ConnectActivity"
     tools:showIn="@layout/activity_connect">
 
-    <TextView
-        android:id="@+id/tv_device_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="15dp"
-        android:layout_marginTop="15dp"
-        android:text="Unknow"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <!--<ExpandableListView-->
-    <!--android:layout_width="0dp"-->
-    <!--android:layout_height="wrap_content"-->
-    <!--app:layout_constraintBottom_toBottomOf="parent"-->
-    <!--app:layout_constraintLeft_toLeftOf="parent"-->
-    <!--app:layout_constraintRight_toRightOf="parent"-->
-    <!--app:layout_constraintTop_toTopOf="parent">-->
-
-    <!--</ExpandableListView>-->
-    <Button
-        android:id="@+id/connect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="connect"
-        app:layout_constraintLeft_toRightOf="@+id/tv_device_name"
-        app:layout_constraintRight_toLeftOf="@+id/diconnect"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/diconnect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="disconnect"
-        app:layout_constraintLeft_toRightOf="@+id/connect"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toRightOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0" />
 
-
+    <EditText
+        android:id="@+id/write_data"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/write"
+        app:layout_constraintLeft_toRightOf="@+id/diconnect"/>
     <TextView
         android:id="@+id/data"
         android:layout_width="wrap_content"
@@ -63,7 +42,7 @@
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_device_name"
+        app:layout_constraintTop_toBottomOf="@+id/diconnect"
         app:layout_constraintVertical_bias="0" />
 
     <Button
@@ -71,10 +50,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="write"
-        app:layout_constraintBaseline_toBaselineOf="@+id/data"
-        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/data" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintleft_toRightOf="@+id/write_data" />
 
     <ExpandableListView
         android:id="@+id/gatt_services_list"
@@ -83,6 +61,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/write"
+        app:layout_constraintTop_toBottomOf="@+id/data"
         app:layout_constraintVertical_bias="0.0" />
 </android.support.constraint.ConstraintLayout>

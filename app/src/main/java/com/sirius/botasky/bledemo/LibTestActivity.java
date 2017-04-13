@@ -1,8 +1,10 @@
 package com.sirius.botasky.bledemo;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -14,10 +16,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.sirius.botasky.cyberble.ble.BleAdmin;
+import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
@@ -26,11 +31,40 @@ import java.util.List;
 import java.util.Map;
 
 public class LibTestActivity extends AppCompatActivity {
-    private Button mScanButton, mStopButton;
+    private Button mScanButton, mStopButton, mDisconnecte, mWrite;
+    private EditText mEditData;
+    private ExpandableListView mExpanListView;
     private RecyclerView mDevicesRecycler;
     private BleDeviceAdapter mRecyclerAdapter;
     private BleAdmin mBleAdmin;
+    private TextView mNotifyData;
+    private ConstraintLayout discover, connect;
 
+    private DeviceConnectCallback mDeviceCallBack = new DeviceConnectCallback() {
+        @Override
+        public void onDeviceConnected() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    discover.setVisibility(View.GONE);
+                    connect.setVisibility(View.VISIBLE);
+                }
+            });
+
+        }
+
+        @Override
+        public void onDeviceDisconnected() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    discover.setVisibility(View.VISIBLE);
+                    connect.setVisibility(View.GONE);
+                }
+            });
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +81,7 @@ public class LibTestActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        mBleAdmin = new BleAdmin(this);
+        mBleAdmin = new BleAdmin(this, mDeviceCallBack);
         setupView();
 
     }
@@ -61,6 +95,16 @@ public class LibTestActivity extends AppCompatActivity {
         mRecyclerAdapter = new BleDeviceAdapter();
         mDevicesRecycler.setAdapter(mRecyclerAdapter);
         mStopButton = (Button) findViewById(R.id.stop_scan);
+
+        mDisconnecte = (Button) findViewById(R.id.diconnect);
+        mWrite = (Button) findViewById(R.id.write);
+        mEditData = (EditText) findViewById(R.id.write_data);
+        mExpanListView = (ExpandableListView) findViewById(R.id.gatt_services_list);
+        mNotifyData = (TextView) findViewById(R.id.data);
+
+
+        discover = (ConstraintLayout) findViewById(R.id.discover);
+        connect = (ConstraintLayout) findViewById(R.id.connect_layout);
 
         //开始扫描
         mScanButton.setOnClickListener(new View.OnClickListener() {
@@ -89,6 +133,8 @@ public class LibTestActivity extends AppCompatActivity {
             }
         });
     }
+
+
 
     private class BleDeviceAdapter extends RecyclerView.Adapter<BleDeviceAdapter.ViewHolder> {
         private List<BluetoothDevice> devices;
@@ -128,7 +174,7 @@ public class LibTestActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(BleDeviceAdapter.ViewHolder holder, int position) {
+        public void onBindViewHolder(BleDeviceAdapter.ViewHolder holder, final int position) {
             BleDeviceAdapter.ViewHolder viewHolder = ((BleDeviceAdapter.ViewHolder) holder);
             final BluetoothDevice device = devices.get(position);
             final String deviceName = device.getName();
@@ -143,10 +189,7 @@ public class LibTestActivity extends AppCompatActivity {
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(LibTestActivity.this, ConnectActivity.class);
-                    intent.putExtra(ConnectActivity.DEVICE_ADDRESS, device.getAddress());
-                    intent.putExtra(ConnectActivity.DEVICE_NAME, device.getName());
-                    startActivity(intent);
+                    mBleAdmin.connectDevice(devices.get(position));
                 }
             });
         }

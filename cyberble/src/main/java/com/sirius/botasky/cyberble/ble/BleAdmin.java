@@ -2,14 +2,21 @@ package com.sirius.botasky.cyberble.ble;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
+import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -25,14 +32,20 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     private Context mContext;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothManager mBluetoothManager;
-    private int mDeviceCount;
+    private int mDeviceCount;//搜索到的蓝牙设备的数量
 
 
     private ScanCallback mScanCallBack;
     private List<BluetoothDevice> mScanDevices;
 
-    public BleAdmin(Context mContext) {
+    private Map<String, BleDeviceOperator> mConnectedDevice;
+    private Map<String, BleDeviceOperator> mConnectingDevice;
+
+    private DeviceConnectCallback mDeviceCallback;
+
+    public BleAdmin(Context mContext, DeviceConnectCallback deviceConnectCallback) {
         this.mContext = mContext;
+        this.mDeviceCallback = deviceConnectCallback;
         initialize();
     }
 
@@ -46,12 +59,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     private void initialize() {
         mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-//        if (mBluetoothAdapter == null || mContext.getApplicationContext()
-//                        .getPackageManager()
-//                        .hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
-//            Log.e(TAG, " Device is not support ble");
-//            return;
-//        }
+        if (mBluetoothAdapter == null){
+            throw new IllegalArgumentException("Your device is not support ble");
+        }
     }
 
     /**
@@ -133,5 +143,87 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             mDeviceCount++;
         }
     }
+
+    /**
+     * 通过地址直接连接设备
+     * @param deviceAddress
+     */
+    public void connectDevice(String deviceAddress){
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
+        connectDevice(device);
+    }
+
+    /**
+     * 通过设备直接连接
+     * @param device
+     */
+    public void connectDevice(final BluetoothDevice device){
+        BleDeviceOperator deviceOperator = new BleDeviceOperator(device, mContext, mBluetoothCattCallback);
+        deviceOperator.connectDevice();
+        if (mConnectingDevice == null){
+            mConnectingDevice = new HashMap<>();
+        }
+        if (!mConnectingDevice.containsKey(device.getAddress())){
+            mConnectingDevice.put(device.getAddress(), deviceOperator);
+        }
+    }
+
+
+    //蓝牙连接状态
+    public static final int STATE_CONNECTED = BluetoothProfile.STATE_CONNECTED;
+    public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
+    public static final int STATE_CONNECTING = BluetoothProfile.STATE_CONNECTING;
+    private BluetoothGattCallback mBluetoothCattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+            String address = gatt.getDevice().getAddress();
+            Log.e(TAG, " connect state is success" );
+            if (newState == STATE_CONNECTED){
+                Log.e(TAG, " connect state is " + newState);
+                if (mConnectedDevice == null){
+                    mConnectedDevice = new HashMap<>();
+                }
+                if (!mConnectedDevice.containsKey(address)){
+                    mConnectedDevice.put(address, mConnectingDevice.get(address));
+                    mConnectingDevice.remove(address);
+                }
+                mDeviceCallback.onDeviceConnected();
+            }else if (newState == STATE_DISCONNECTED){
+                Log.e(TAG, " connect state is fail" );
+                if (mConnectedDevice.containsKey(address)){
+                    mConnectedDevice.remove(address);
+                }
+                if (mConnectingDevice.containsKey(address)){
+                    mConnectingDevice.remove(address);
+                }
+                mDeviceCallback.onDeviceDisconnected();
+            }
+
+
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            super.onServicesDiscovered(gatt, status);
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicRead(gatt, characteristic, status);
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(gatt, characteristic);
+        }
+    };
+
 
 }

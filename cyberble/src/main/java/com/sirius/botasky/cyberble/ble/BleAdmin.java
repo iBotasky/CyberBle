@@ -10,7 +10,8 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
-import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
+import com.sirius.botasky.cyberble.callback.DeviceConnectStateCallback;
+import com.sirius.botasky.cyberble.callback.DeviceOperationCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
@@ -41,11 +42,13 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     private Map<String, BleDeviceOperator> mConnectedDevice;
     private Map<String, BleDeviceOperator> mConnectingDevice;
 
-    private DeviceConnectCallback mDeviceCallback;
+    private DeviceConnectStateCallback mDeviceCallback;
+    private DeviceOperationCallback mDeviceOperationCallback;
 
-    public BleAdmin(Context mContext, DeviceConnectCallback deviceConnectCallback) {
+    public BleAdmin(Context mContext, DeviceConnectStateCallback deviceConnectCallback, DeviceOperationCallback mDeviceOperationCallback) {
         this.mContext = mContext;
         this.mDeviceCallback = deviceConnectCallback;
+        this.mDeviceOperationCallback = mDeviceOperationCallback;
         initialize();
     }
 
@@ -168,6 +171,16 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         }
     }
 
+    /**
+     * 发现服务
+     * @param address
+     */
+    public void discoverService(String address){
+        if (mConnectedDevice.containsKey(address)){
+            mConnectedDevice.get(address).discoverDeviceServices();
+        }
+    }
+
 
     //蓝牙连接状态
     public static final int STATE_CONNECTED = BluetoothProfile.STATE_CONNECTED;
@@ -188,7 +201,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
                     mConnectedDevice.put(address, mConnectingDevice.get(address));
                     mConnectingDevice.remove(address);
                 }
-                mDeviceCallback.onDeviceConnected();
+                mDeviceCallback.onDeviceConnected(address);
             }else if (newState == STATE_DISCONNECTED){
                 Log.e(TAG, " connect state is fail" );
                 if (mConnectedDevice.containsKey(address)){
@@ -207,6 +220,11 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
+            String address = gatt.getDevice().getAddress();
+            if (status == BluetoothGatt.GATT_SUCCESS){
+                mDeviceOperationCallback.onDeviceServiceDiscover(address, gatt.getServices());
+            }
+
         }
 
         @Override

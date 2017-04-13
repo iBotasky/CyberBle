@@ -3,12 +3,8 @@ package com.sirius.botasky.cyberble.ble;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
-
-import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
-import com.sirius.botasky.cyberble.callback.OperationResultCallBack;
 
 /**
  * 这个类用来对一个蓝牙设备进行操作的Operator,包括Connect,Read,Write,Notify,
@@ -27,7 +23,6 @@ public class BleDeviceOperator {
     private BluetoothGatt mBluetoothGatt;
     private String mBluetoothDeviceAddress;
     private Context mContext;
-    private DeviceConnectCallback mDeviceConnectCallback;
     private BluetoothGattCallback mBluetoothGattCallback;
     private int mConnectState = STATE_DISCONNECTED;
 
@@ -67,7 +62,12 @@ public class BleDeviceOperator {
 //        }
 //    };
 
-
+    /**
+     * 蓝牙设备操作类
+     * @param mBluetoothDevice
+     * @param mContext
+     * @param mBluetoothCattCallback
+     */
     public BleDeviceOperator(BluetoothDevice mBluetoothDevice,
                              Context mContext,
                              BluetoothGattCallback mBluetoothCattCallback) {
@@ -86,11 +86,20 @@ public class BleDeviceOperator {
     }
 
     /**
-     * 连接这个蓝牙设备
+     * 连接这个蓝牙设备,得到Gatt
      */
     public void connectDevice() {
         mConnectState = STATE_CONNECTING;
         mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBluetoothGattCallback);
+    }
+
+    /**
+     * 发现这个设备的服务
+     */
+    public void discoverDeviceServices(){
+        if (mBluetoothGatt != null){
+            mBluetoothGatt.discoverServices();
+        }
     }
 
 }

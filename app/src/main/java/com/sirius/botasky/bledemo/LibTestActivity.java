@@ -1,8 +1,9 @@
 package com.sirius.botasky.bledemo;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.content.Intent;
+import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -19,10 +20,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import com.sirius.botasky.cyberble.ble.BleAdmin;
-import com.sirius.botasky.cyberble.callback.DeviceConnectCallback;
+import com.sirius.botasky.cyberble.callback.DeviceConnectStateCallback;
+import com.sirius.botasky.cyberble.callback.DeviceOperationCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
@@ -41,12 +44,13 @@ public class LibTestActivity extends AppCompatActivity {
     private ConstraintLayout discover, connect;
     private String mCurrentDeviceAddress;
 
-    private DeviceConnectCallback mDeviceCallBack = new DeviceConnectCallback() {
+    private DeviceConnectStateCallback mDeviceCallBack = new DeviceConnectStateCallback() {
         @Override
-        public void onDeviceConnected() {
+        public void onDeviceConnected(final String address) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    mBleAdmin.discoverService(address);
                     discover.setVisibility(View.GONE);
                     connect.setVisibility(View.VISIBLE);
                 }
@@ -67,6 +71,29 @@ public class LibTestActivity extends AppCompatActivity {
         }
     };
 
+    private DeviceOperationCallback mDeviceOperationCallback = new DeviceOperationCallback() {
+        @Override
+        public void onDeviceServiceDiscover(String deviceAddress, List<BluetoothGattService> services) {
+            displayGattServices(services);
+        }
+
+        @Override
+        public void onDeviceCharacteristicRead(String deviceAddress) {
+
+        }
+
+        @Override
+        public void onDeviceCharacteristicWrite(String deviceAddress) {
+
+        }
+
+        @Override
+        public void onDeviceCharacteristicNotify(String deviceAddress) {
+
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,7 +109,7 @@ public class LibTestActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-        mBleAdmin = new BleAdmin(this, mDeviceCallBack);
+        mBleAdmin = new BleAdmin(this, mDeviceCallBack, mDeviceOperationCallback);
         setupView();
 
     }
@@ -135,6 +162,69 @@ public class LibTestActivity extends AppCompatActivity {
         });
     }
 
+    private final String LIST_NAME = "NAME";
+    private final String LIST_UUID = "UUID";
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+    /**
+     * 将获取到的服务展示出来，根据SampleGattAttributes对比，看有；没有符合的服务
+     */
+    private void displayGattServices(List<BluetoothGattService> services) {
+
+        if (services == null) return;
+        String uuid = null;
+        String unknownServiceString = "未知服务";
+        String unknownCharaString = "未知特征";
+        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
+        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData = new ArrayList<ArrayList<HashMap<String, String>>>();
+        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+        for (BluetoothGattService gattService : services) {
+            HashMap<String, String> currentServiceData = new HashMap<String, String>();
+            uuid = gattService.getUuid().toString();
+            currentServiceData.put(
+                    LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
+            currentServiceData.put(LIST_UUID, uuid);
+            gattServiceData.add(currentServiceData);
+
+            ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
+                    new ArrayList<HashMap<String, String>>();
+            List<BluetoothGattCharacteristic> gattCharacteristics =
+                    gattService.getCharacteristics();
+            ArrayList<BluetoothGattCharacteristic> charas =
+                    new ArrayList<BluetoothGattCharacteristic>();
+
+            // Loops through available Characteristics.
+            for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                charas.add(gattCharacteristic);
+                HashMap<String, String> currentCharaData = new HashMap<String, String>();
+                uuid = gattCharacteristic.getUuid().toString();
+                currentCharaData.put(
+                        LIST_NAME, SampleGattAttributes.lookup(uuid, unknownCharaString));
+                currentCharaData.put(LIST_UUID, uuid);
+                gattCharacteristicGroupData.add(currentCharaData);
+            }
+            mGattCharacteristics.add(charas);
+            gattCharacteristicData.add(gattCharacteristicGroupData);
+        }
+        final SimpleExpandableListAdapter gattServiceAdapter = new SimpleExpandableListAdapter(
+                this,
+                gattServiceData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2},
+                gattCharacteristicData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2}
+        );
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mExpanListView.setAdapter(gattServiceAdapter);
+
+            }
+        });
+    }
 
 
     private class BleDeviceAdapter extends RecyclerView.Adapter<BleDeviceAdapter.ViewHolder> {

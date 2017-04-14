@@ -1,7 +1,6 @@
 package com.sirius.botasky.bledemo;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
@@ -144,7 +143,7 @@ public class LibTestActivity extends AppCompatActivity {
             public void onClick(View v) {
                 mBleAdmin.processDeviceService(new BleDeviceService(
                         mCurrentDeviceAddress,
-                        UUID.fromString(SampleGattAttributes.INSOLE_WRITE),
+                        UUID.fromString(SampleGattAttributes.UUID_WRITE),
                         BleDeviceService.OperateType.Write,
                         mEditData.getText().toString().getBytes()));
             }

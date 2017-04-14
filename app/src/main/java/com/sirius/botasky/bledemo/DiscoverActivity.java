@@ -178,7 +178,7 @@ public class DiscoverActivity extends AppCompatActivity implements BluetoothAdap
                 return;
             }
             mRecyclerAdapter.clear();
-            UUID[] insole = {UUID.fromString(SampleGattAttributes.INSOLE_MEASUREMENT)};
+            UUID[] insole = {UUID.fromString(SampleGattAttributes.UUID_MEASUREMENT)};
 
             mBleAdapter.startLeScan(insole, this);
             isScaning = true;

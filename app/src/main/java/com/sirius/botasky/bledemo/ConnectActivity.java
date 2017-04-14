@@ -21,8 +21,6 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +58,7 @@ public class ConnectActivity extends AppCompatActivity {
             UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     public final static UUID UUID_INSOLE_MEASUREMENT =
-            UUID.fromString(SampleGattAttributes.INSOLE_MEASUREMENT_NOTIFY);
+            UUID.fromString(SampleGattAttributes.UUID_NOTIFY);
 
     //断开状态
     private static final int STATE_DISCONNECTED = 0;

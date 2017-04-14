@@ -214,7 +214,10 @@ public class LibTestActivity extends AppCompatActivity {
                                 mNotifyCharacteristic = null;
                             }
                             //开启读特征
-                            mBleAdmin.processDeviceService(new BleDeviceService(mCurrentDeviceAddress, characteristic.getUuid(), BleDeviceService.OperateType.Read));
+                            mBleAdmin.processDeviceService(new BleDeviceService(
+                                    mCurrentDeviceAddress,
+                                    characteristic.getUuid(),
+                                    BleDeviceService.OperateType.Read));
 //                            readCharacteristic(characteristic);
                         }
                         if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
@@ -389,8 +392,9 @@ public class LibTestActivity extends AppCompatActivity {
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mCurrentDeviceAddress = devices.get(position).getAddress();
-                    mBleAdmin.connectDevice(devices.get(position));
+                    mCurrentDeviceAddress = device.getAddress();
+//                    mBleAdmin.connectDevice(device.getAddress());
+                    mBleAdmin.connectDevice(device);
                 }
             });
         }

@@ -24,6 +24,8 @@
 
 > BleDeviceService.java 用来描述蓝牙READ,INDICATE,NOTIFY,WRITE这四个功能的类
 
+> callback 下面的类主要是控制一些回调
+
 ### 2.2 使用
 
 #### 2.2.1 先初始化BleAdmin

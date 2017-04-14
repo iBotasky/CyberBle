@@ -114,31 +114,38 @@ public class BleDeviceOperator {
         }
     }
 
+
+    /***
+     * 蓝牙操作处理入口，分别分发到READ，NOTIFY，WRITE
+     * @param bleDeviceService
+     */
     public void processService(BleDeviceService bleDeviceService) {
+        if (mBluetoothGattService == null || mBluetoothGattService.size() == 0) {
+            Log.e(TAG, "The service is not valid");
+            return;
+        }
         UUID characteristicUUID = bleDeviceService.getmCharacteristicUUID();
         BluetoothGattCharacteristic processCharacteristic = null;
-        for (BluetoothGattService service : mBluetoothGattService){
+        for (BluetoothGattService service : mBluetoothGattService) {
             if (service.getCharacteristic(characteristicUUID) == null) {
                 continue;
-            }else {
+            } else {
                 processCharacteristic = service.getCharacteristic(characteristicUUID);
                 break;
             }
         }
 
-        if (isProcessValid(processCharacteristic, bleDeviceService)){
-            switch (bleDeviceService.getmOperationType()){
+        if (isProcessValid(processCharacteristic, bleDeviceService)) {
+            switch (bleDeviceService.getmOperationType()) {
                 case Read:
                     readCharacteristic(processCharacteristic, bleDeviceService.getmOperationType());
             }
         }
 
-
-
     }
 
     /**
-     * BleAdmin服务回调成功后调用
+     * BleAdmin服务回调成功后调用，用来获得Service
      */
     public void setSerivce() {
         if (isGattValid()) {
@@ -153,7 +160,7 @@ public class BleDeviceOperator {
      */
     private void readCharacteristic(BluetoothGattCharacteristic characteristic, BleDeviceService.OperateType type) {
         if (isGattValid()) {
-            if (type != BleDeviceService.OperateType.Read){
+            if (type != BleDeviceService.OperateType.Read) {
                 Log.e(TAG, "The process is wrong");
             }
             mBluetoothGatt.readCharacteristic(characteristic);
@@ -161,13 +168,20 @@ public class BleDeviceOperator {
     }
 
 
-    private boolean isProcessValid(BluetoothGattCharacteristic characteristic, BleDeviceService service){
-        if (characteristic == null){
-            Log.e(TAG,"the charatsic is not valid");
+    /**
+     * 判定Process是否有效
+     *
+     * @param characteristic
+     * @param service
+     * @return
+     */
+    private boolean isProcessValid(BluetoothGattCharacteristic characteristic, BleDeviceService service) {
+        if (characteristic == null) {
+            Log.e(TAG, "the charatsic is not valid");
             return false;
         }
         int charaProp = characteristic.getProperties();
-        switch (service.getmOperationType()){
+        switch (service.getmOperationType()) {
             case Read:
                 return (charaProp & BluetoothGattCharacteristic.PROPERTY_READ) != 0;
             case Notify:

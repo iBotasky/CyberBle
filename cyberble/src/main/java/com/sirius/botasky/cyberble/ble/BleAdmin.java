@@ -22,7 +22,7 @@ import java.util.UUID;
 
 
 /**
- * Bluetooth的总类，ble的一些操作，扫描跟设备管理类
+ * Bluetooth的总类，ble设备管理，扫描.
  * Created by botasky on 13/04/2017.
  */
 
@@ -211,8 +211,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     }
 
 
-
-
+    /**
+     * 基础回调
+     */
     //蓝牙连接状态
     public static final int STATE_CONNECTED = BluetoothProfile.STATE_CONNECTED;
     public static final int STATE_DISCONNECTED = BluetoothProfile.STATE_DISCONNECTED;
@@ -259,6 +260,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS){
+                // TODO: 14/04/2017 要去掉BleDeviceOperacitor 的service， 做好管理
                 mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
             }
         }

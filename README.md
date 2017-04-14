@@ -132,3 +132,15 @@ mWrite.setOnClickListener(new View.OnClickListener() {
         });
 ```
 
+
+
+
+
+
+
+### 3. 借鉴
+
+[BleBus](https://github.com/backav/android-ble-bus)
+
+[FastBle](https://github.com/Jasonchenlijian/FastBle)
+

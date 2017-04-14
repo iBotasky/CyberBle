@@ -1,5 +1,6 @@
 package com.sirius.botasky.cyberble.callback;
 
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
 public interface DeviceOperationCallback {
     void onDeviceServiceDiscover(String deviceAddress, List<BluetoothGattService> services);
 
-    void onDeviceCharacteristicRead(String deviceAddress);
+    void onDeviceCharacteristicRead(String deviceAddress, BluetoothGattCharacteristic characteristic);
 
     void onDeviceCharacteristicWrite(String deviceAddress);
 

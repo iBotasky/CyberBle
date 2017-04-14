@@ -3,8 +3,16 @@ package com.sirius.botasky.cyberble.ble;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * 这个类用来对一个蓝牙设备进行操作的Operator,包括Connect,Read,Write,Notify,
@@ -25,6 +33,8 @@ public class BleDeviceOperator {
     private Context mContext;
     private BluetoothGattCallback mBluetoothGattCallback;
     private int mConnectState = STATE_DISCONNECTED;
+    private List<BleDeviceService> mOpeationService;
+    private List<BluetoothGattService> mBluetoothGattService;
 
 
 //    private BluetoothGattCallback mBluetoothCattCallback = new BluetoothGattCallback() {
@@ -64,6 +74,7 @@ public class BleDeviceOperator {
 
     /**
      * 蓝牙设备操作类
+     *
      * @param mBluetoothDevice
      * @param mContext
      * @param mBluetoothCattCallback
@@ -83,6 +94,7 @@ public class BleDeviceOperator {
             throw new IllegalArgumentException("BleDevice is null");
         }
         mBluetoothDeviceAddress = mBluetoothDevice.getAddress();
+        mOpeationService = new ArrayList<>();
     }
 
     /**
@@ -96,10 +108,88 @@ public class BleDeviceOperator {
     /**
      * 发现这个设备的服务
      */
-    public void discoverDeviceServices(){
-        if (mBluetoothGatt != null){
+    public void discoverDeviceServices() {
+        if (isGattValid()) {
             mBluetoothGatt.discoverServices();
         }
     }
+
+    public void processService(BleDeviceService bleDeviceService) {
+        UUID characteristicUUID = bleDeviceService.getmCharacteristicUUID();
+        BluetoothGattCharacteristic processCharacteristic = null;
+        for (BluetoothGattService service : mBluetoothGattService){
+            if (service.getCharacteristic(characteristicUUID) == null) {
+                continue;
+            }else {
+                processCharacteristic = service.getCharacteristic(characteristicUUID);
+                break;
+            }
+        }
+
+        if (isProcessValid(processCharacteristic, bleDeviceService)){
+            switch (bleDeviceService.getmOperationType()){
+                case Read:
+                    readCharacteristic(processCharacteristic, bleDeviceService.getmOperationType());
+            }
+        }
+
+
+
+    }
+
+    /**
+     * BleAdmin服务回调成功后调用
+     */
+    public void setSerivce() {
+        if (isGattValid()) {
+            mBluetoothGattService = mBluetoothGatt.getServices();
+        }
+    }
+
+    /**
+     * 读操作
+     *
+     * @param characteristic
+     */
+    private void readCharacteristic(BluetoothGattCharacteristic characteristic, BleDeviceService.OperateType type) {
+        if (isGattValid()) {
+            if (type != BleDeviceService.OperateType.Read){
+                Log.e(TAG, "The process is wrong");
+            }
+            mBluetoothGatt.readCharacteristic(characteristic);
+        }
+    }
+
+
+    private boolean isProcessValid(BluetoothGattCharacteristic characteristic, BleDeviceService service){
+        if (characteristic == null){
+            Log.e(TAG,"the charatsic is not valid");
+            return false;
+        }
+        int charaProp = characteristic.getProperties();
+        switch (service.getmOperationType()){
+            case Read:
+                return (charaProp & BluetoothGattCharacteristic.PROPERTY_READ) != 0;
+            case Notify:
+                return (charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) != 0;
+            case Write:
+                return (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
+                        && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0;
+        }
+        return false;
+    }
+
+    /**
+     * 校验gatt是否存在
+     *
+     * @return
+     */
+    private boolean isGattValid() {
+        if (mBluetoothGatt == null) {
+            throw new IllegalArgumentException("The Gatt is unvalid");
+        }
+        return true;
+    }
+
 
 }

@@ -24,6 +24,7 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import com.sirius.botasky.cyberble.ble.BleAdmin;
+import com.sirius.botasky.cyberble.ble.BleDeviceService;
 import com.sirius.botasky.cyberble.callback.DeviceConnectStateCallback;
 import com.sirius.botasky.cyberble.callback.DeviceOperationCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
@@ -33,7 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.sirius.botasky.bledemo.ConnectActivity.UUID_HEART_RATE_MEASUREMENT;
+
 public class LibTestActivity extends AppCompatActivity {
+    public static final String TAG = LibTestActivity.class.getSimpleName();
+
+
     private Button mScanButton, mStopButton, mDisconnecte, mWrite;
     private EditText mEditData;
     private ExpandableListView mExpanListView;
@@ -43,14 +49,14 @@ public class LibTestActivity extends AppCompatActivity {
     private TextView mNotifyData;
     private ConstraintLayout discover, connect;
     private String mCurrentDeviceAddress;
-
+    private BluetoothGattCharacteristic mNotifyCharacteristic;
     private DeviceConnectStateCallback mDeviceCallBack = new DeviceConnectStateCallback() {
         @Override
         public void onDeviceConnected(final String address) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mBleAdmin.discoverService(address);
+                    mBleAdmin.discoverDeviceService(address);
                     discover.setVisibility(View.GONE);
                     connect.setVisibility(View.VISIBLE);
                 }
@@ -78,8 +84,8 @@ public class LibTestActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDeviceCharacteristicRead(String deviceAddress) {
-
+        public void onDeviceCharacteristicRead(String deviceAddress, BluetoothGattCharacteristic characteristic) {
+            displayData(characteristic);
         }
 
         @Override
@@ -115,7 +121,7 @@ public class LibTestActivity extends AppCompatActivity {
     }
 
 
-    private void setupView(){
+    private void setupView() {
         mScanButton = (Button) findViewById(R.id.start_scan);
         mDevicesRecycler = ((RecyclerView) findViewById(R.id.device_list));
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
@@ -128,6 +134,7 @@ public class LibTestActivity extends AppCompatActivity {
         mWrite = (Button) findViewById(R.id.write);
         mEditData = (EditText) findViewById(R.id.write_data);
         mExpanListView = (ExpandableListView) findViewById(R.id.gatt_services_list);
+        mExpanListView.setOnChildClickListener(servicesListClickListner);
         mNotifyData = (TextView) findViewById(R.id.data);
 
 
@@ -162,9 +169,55 @@ public class LibTestActivity extends AppCompatActivity {
         });
     }
 
+    // If a given GATT characteristic is selected, check for supported features.  This sample
+    // demonstrates 'Read' and 'Notify' features.  See
+    // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
+    // list of supported characteristic features.
+    /**
+     * 如果一个GATT的特征被选中，
+     */
+    private final ExpandableListView.OnChildClickListener servicesListClickListner =
+            new ExpandableListView.OnChildClickListener() {
+                @Override
+                public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                                            int childPosition, long id) {
+                    if (mGattCharacteristics != null) {
+                        final BluetoothGattCharacteristic characteristic =
+                                mGattCharacteristics.get(groupPosition).get(childPosition);
+                        final int charaProp = characteristic.getProperties();
+                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+                            // If there is an active notification on a characteristic, clear
+                            // it first so it doesn't update the data field on the user interface.
+                            //如果当前有一个NOTIFY的特征正在活动，要先关闭NOTIFY特征，再去开启READ特征
+                            if (mNotifyCharacteristic != null) {
+//                                setCharacteristicNotification(mNotifyCharacteristic, false);
+                                mNotifyCharacteristic = null;
+                            }
+                            //开启读特征
+                            mBleAdmin.processDeviceService(new BleDeviceService(mCurrentDeviceAddress, characteristic.getUuid(), BleDeviceService.OperateType.Read));
+//                            readCharacteristic(characteristic);
+                        }
+//                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+//                            mNotifyCharacteristic = characteristic;
+//                            setCharacteristicNotification(characteristic, true);
+//                        }
+//                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
+//                                && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0){
+//                            Log.e(TAG, "Characteristic this is a write characteristic");
+//                            writeCharacteristic(characteristic);
+//                        }
+
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
+
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
     /**
      * 将获取到的服务展示出来，根据SampleGattAttributes对比，看有；没有符合的服务
      */
@@ -227,6 +280,55 @@ public class LibTestActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 展示READ或者NOTIFY特征返回的信息
+     *
+     * @param
+     */
+    private void displayData(BluetoothGattCharacteristic characteristic) {
+        /**
+         * 通用心率协议的NOTIFY特征需要特殊处理
+         */
+        // This is special handling for the Heart Rate Measurement profile.  Data parsing is
+        // carried out as per profile specifications:
+        // http://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
+        if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            int flag = characteristic.getProperties();
+            int format = -1;
+            if ((flag & 0x01) != 0) {
+                format = BluetoothGattCharacteristic.FORMAT_UINT16;
+                Log.d(TAG, "Heart rate format UINT16.");
+            } else {
+                format = BluetoothGattCharacteristic.FORMAT_UINT8;
+                Log.d(TAG, "Heart rate format UINT8.");
+            }
+            final int heartRate = characteristic.getIntValue(format, 1);
+            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mNotifyData.setText(String.valueOf(heartRate));
+                }
+            });
+        } else {
+            // For all other profiles, writes the data formatted in HEX.
+            final byte[] data = characteristic.getValue();
+            if (data != null && data.length > 0) {
+                final StringBuilder stringBuilder = new StringBuilder(data.length);
+                for (byte byteChar : data)
+                    stringBuilder.append(String.format("%02X ", byteChar));
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mNotifyData.setText(new String(data) + "\n" + stringBuilder.toString());
+                    }
+                });
+
+            }
+        }
+    }
+
+
     private class BleDeviceAdapter extends RecyclerView.Adapter<BleDeviceAdapter.ViewHolder> {
         private List<BluetoothDevice> devices;
         private LayoutInflater mInflator;
@@ -238,11 +340,10 @@ public class LibTestActivity extends AppCompatActivity {
             this.mInflator = LibTestActivity.this.getLayoutInflater();
         }
 
-        private void setDevices(List<BluetoothDevice> devices){
+        private void setDevices(List<BluetoothDevice> devices) {
             this.devices = devices;
             notifyDataSetChanged();
         }
-
 
 
         @Override

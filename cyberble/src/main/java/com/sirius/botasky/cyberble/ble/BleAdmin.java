@@ -62,7 +62,8 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     private void initialize() {
         mBluetoothManager = (BluetoothManager) mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-        if (mBluetoothAdapter == null){
+        mConnectedDevice = new HashMap<>();
+        if (mBluetoothAdapter == null) {
             throw new IllegalArgumentException("Your device is not support ble");
         }
     }
@@ -149,37 +150,67 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
 
     /**
      * 通过地址直接连接设备
+     *
      * @param deviceAddress
      */
-    public void connectDevice(String deviceAddress){
+    public void connectDevice(String deviceAddress) {
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
         connectDevice(device);
     }
 
     /**
      * 通过设备直接连接
+     *
      * @param device
      */
-    public void connectDevice(final BluetoothDevice device){
+    public void connectDevice(final BluetoothDevice device) {
         BleDeviceOperator deviceOperator = new BleDeviceOperator(device, mContext, mBluetoothCattCallback);
         deviceOperator.connectDevice();
-        if (mConnectingDevice == null){
+        if (mConnectingDevice == null) {
             mConnectingDevice = new HashMap<>();
         }
-        if (!mConnectingDevice.containsKey(device.getAddress())){
+        if (!mConnectingDevice.containsKey(device.getAddress())) {
             mConnectingDevice.put(device.getAddress(), deviceOperator);
         }
     }
 
     /**
      * 发现服务
+     *
      * @param address
      */
-    public void discoverService(String address){
-        if (mConnectedDevice.containsKey(address)){
+    public void discoverDeviceService(String address) {
+        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
             mConnectedDevice.get(address).discoverDeviceServices();
         }
     }
+
+//    /**
+//     * 开启读特征
+//     *
+//     * @param address
+//     * @param characteristic
+//     */
+//    public void readDeviceService(String address, BluetoothGattCharacteristic characteristic) {
+//        if (!isReadCharacteristic(characteristic)) {
+//            throw new IllegalArgumentException("The characteris is not a read charachteristic");
+//        }
+//        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
+//            mConnectedDevice.get(address).
+//        }
+//    }
+
+    /**
+     * 蓝牙操作服务，
+     * @param service
+     */
+    public void processDeviceService(BleDeviceService service){
+        if (mConnectedDevice != null && mConnectedDevice.containsKey(service.getmDeviceAddress())){
+            mConnectedDevice.get(service.getmDeviceAddress()).processService(service);
+        }
+    }
+
+
 
 
     //蓝牙连接状态
@@ -191,28 +222,24 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             String address = gatt.getDevice().getAddress();
-            Log.e(TAG, " connect state is success" );
-            if (newState == STATE_CONNECTED){
+            Log.e(TAG, " connect state is success");
+            if (newState == STATE_CONNECTED) {
                 Log.e(TAG, " connect state is " + newState);
-                if (mConnectedDevice == null){
-                    mConnectedDevice = new HashMap<>();
-                }
-                if (!mConnectedDevice.containsKey(address)){
+                if (!mConnectedDevice.containsKey(address)) {
                     mConnectedDevice.put(address, mConnectingDevice.get(address));
                     mConnectingDevice.remove(address);
                 }
                 mDeviceCallback.onDeviceConnected(address);
-            }else if (newState == STATE_DISCONNECTED){
-                Log.e(TAG, " connect state is fail" );
-                if (mConnectedDevice.containsKey(address)){
+            } else if (newState == STATE_DISCONNECTED) {
+                Log.e(TAG, " connect state is fail");
+                if (mConnectedDevice.containsKey(address)) {
                     mConnectedDevice.remove(address);
                 }
-                if (mConnectingDevice.containsKey(address)){
+                if (mConnectingDevice.containsKey(address)) {
                     mConnectingDevice.remove(address);
                 }
                 mDeviceCallback.onDeviceDisconnected();
             }
-
 
 
         }
@@ -221,7 +248,8 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
             String address = gatt.getDevice().getAddress();
-            if (status == BluetoothGatt.GATT_SUCCESS){
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                mConnectedDevice.get(address).setSerivce();
                 mDeviceOperationCallback.onDeviceServiceDiscover(address, gatt.getServices());
             }
 
@@ -230,6 +258,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
+            if (status == BluetoothGatt.GATT_SUCCESS){
+                mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
+            }
         }
 
         @Override

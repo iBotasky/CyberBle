@@ -202,10 +202,11 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
 
     /**
      * 蓝牙操作服务，
+     *
      * @param service
      */
-    public void processDeviceService(BleDeviceService service){
-        if (mConnectedDevice != null && mConnectedDevice.containsKey(service.getmDeviceAddress())){
+    public void processDeviceService(BleDeviceService service) {
+        if (mConnectedDevice != null && mConnectedDevice.containsKey(service.getmDeviceAddress())) {
             mConnectedDevice.get(service.getmDeviceAddress()).processService(service);
         }
     }
@@ -259,7 +260,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
-            if (status == BluetoothGatt.GATT_SUCCESS){
+            if (status == BluetoothGatt.GATT_SUCCESS) {
                 // TODO: 14/04/2017 要去掉BleDeviceOperacitor 的service， 做好管理
                 mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
             }
@@ -268,11 +269,20 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
+            if (status == BluetoothGatt.GATT_SUCCESS){
+                Log.e(TAG, " write success");
+                mDeviceOperationCallback.onDeviceCharacteristicWrite(gatt.getDevice().getAddress());
+            }else {
+                Log.e(TAG, " write failure");
+            }
+
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+            String address = gatt.getDevice().getAddress();
+            mDeviceOperationCallback.onDeviceCharacteristicNotify(address, characteristic);
         }
     };
 

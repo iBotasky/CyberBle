@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static com.sirius.botasky.bledemo.ConnectActivity.UUID_HEART_RATE_MEASUREMENT;
 
@@ -94,7 +95,8 @@ public class LibTestActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDeviceCharacteristicNotify(String deviceAddress) {
+        public void onDeviceCharacteristicNotify(String deviceAddress, BluetoothGattCharacteristic characteristic) {
+            displayData(characteristic);
 
         }
     };
@@ -136,6 +138,17 @@ public class LibTestActivity extends AppCompatActivity {
         mExpanListView = (ExpandableListView) findViewById(R.id.gatt_services_list);
         mExpanListView.setOnChildClickListener(servicesListClickListner);
         mNotifyData = (TextView) findViewById(R.id.data);
+
+        mWrite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBleAdmin.processDeviceService(new BleDeviceService(
+                        mCurrentDeviceAddress,
+                        UUID.fromString(SampleGattAttributes.INSOLE_WRITE),
+                        BleDeviceService.OperateType.Write,
+                        mEditData.getText().toString().getBytes()));
+            }
+        });
 
 
         discover = (ConstraintLayout) findViewById(R.id.discover);
@@ -197,10 +210,10 @@ public class LibTestActivity extends AppCompatActivity {
                             mBleAdmin.processDeviceService(new BleDeviceService(mCurrentDeviceAddress, characteristic.getUuid(), BleDeviceService.OperateType.Read));
 //                            readCharacteristic(characteristic);
                         }
-//                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-//                            mNotifyCharacteristic = characteristic;
-//                            setCharacteristicNotification(characteristic, true);
-//                        }
+                        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+                            mNotifyCharacteristic = characteristic;
+                            mBleAdmin.processDeviceService(new BleDeviceService(mCurrentDeviceAddress, characteristic.getUuid(), BleDeviceService.OperateType.Notify));
+                        }
 //                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
 //                                && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0){
 //                            Log.e(TAG, "Characteristic this is a write characteristic");

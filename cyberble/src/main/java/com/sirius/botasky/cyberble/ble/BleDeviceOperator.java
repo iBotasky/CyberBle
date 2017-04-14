@@ -4,10 +4,13 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
+
+import com.sirius.botasky.cyberble.Constant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,41 +39,6 @@ public class BleDeviceOperator {
     private List<BleDeviceService> mOpeationService;
     private List<BluetoothGattService> mBluetoothGattService;
 
-
-//    private BluetoothGattCallback mBluetoothCattCallback = new BluetoothGattCallback() {
-//        @Override
-//        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-//            super.onConnectionStateChange(gatt, status, newState);
-//            if (newState == BluetoothProfile.STATE_CONNECTED) {
-//                mConnectState = STATE_CONNECTED;
-//                mDeviceConnectCallback.onDeviceConnected(BluetoothProfile.STATE_CONNECTED);
-//            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-//                mConnectState = STATE_DISCONNECTED;
-//                mDeviceConnectCallback.onDeviceConnected(BluetoothProfile.STATE_DISCONNECTED);
-//            }
-//
-//        }
-//
-//        @Override
-//        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-//            super.onServicesDiscovered(gatt, status);
-//        }
-//
-//        @Override
-//        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-//            super.onCharacteristicRead(gatt, characteristic, status);
-//        }
-//
-//        @Override
-//        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-//            super.onCharacteristicWrite(gatt, characteristic, status);
-//        }
-//
-//        @Override
-//        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-//            super.onCharacteristicChanged(gatt, characteristic);
-//        }
-//    };
 
     /**
      * 蓝牙设备操作类
@@ -119,7 +87,8 @@ public class BleDeviceOperator {
      * 蓝牙操作处理入口，分别分发到READ，NOTIFY，WRITE
      * @param bleDeviceService
      */
-    public void processService(BleDeviceService bleDeviceService) {
+    public synchronized void processService(BleDeviceService bleDeviceService) {
+        mOpeationService.add(bleDeviceService);
         if (mBluetoothGattService == null || mBluetoothGattService.size() == 0) {
             Log.e(TAG, "The service is not valid");
             return;
@@ -138,11 +107,69 @@ public class BleDeviceOperator {
         if (isProcessValid(processCharacteristic, bleDeviceService)) {
             switch (bleDeviceService.getmOperationType()) {
                 case Read:
-                    readCharacteristic(processCharacteristic, bleDeviceService.getmOperationType());
+                    readCharacteristic(processCharacteristic);
+                    break;
+                case Notify:
+                case Indicate:
+                    notifyCharacteristic(
+                            processCharacteristic,
+                            BleDeviceService.OperateType.Notify != bleDeviceService.getmOperationType());
+                    break;
+                case Write:
+                    writeCharacteristic(processCharacteristic, bleDeviceService.getWriteData());
+                    break;
             }
         }
 
     }
+
+    /**
+     * Read操作
+     *
+     * @param characteristic
+     */
+    private void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+        if (isGattValid()) {
+            mBluetoothGatt.readCharacteristic(characteristic);
+        }
+    }
+
+    /**
+     * Notify/Indicate操作
+     *
+     * @param characteristic
+     */
+    private void notifyCharacteristic(BluetoothGattCharacteristic characteristic, boolean isIndicate) {
+        if (isGattValid()) {
+            if (mBluetoothGatt.setCharacteristicNotification(characteristic, true)) {
+                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(Constant.NOTIFY_OR_INDICATE_DESCRIPTOR_UUID);
+                if (descriptor != null) {
+                    byte[] writingValue = isIndicate ? BluetoothGattDescriptor.ENABLE_INDICATION_VALUE : BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE;
+                    descriptor.setValue(writingValue);
+                    mBluetoothGatt.writeDescriptor(descriptor);
+                } else {
+                    Log.e(TAG, characteristic.getUuid() + "上在找不到Config Descriptor");
+                }
+            }
+        }
+    }
+
+    /**
+     * Write操作
+     * @param characteristic
+     * @param writeData
+     */
+    private boolean writeCharacteristic(BluetoothGattCharacteristic characteristic, byte[] writeData){
+        if (isGattValid()){
+            characteristic.setValue(writeData);
+            boolean status = mBluetoothGatt.writeCharacteristic(characteristic);
+            return status;
+        }
+        return false;
+    }
+
+
+
 
     /**
      * BleAdmin服务回调成功后调用，用来获得Service
@@ -150,20 +177,6 @@ public class BleDeviceOperator {
     public void setSerivce() {
         if (isGattValid()) {
             mBluetoothGattService = mBluetoothGatt.getServices();
-        }
-    }
-
-    /**
-     * 读操作
-     *
-     * @param characteristic
-     */
-    private void readCharacteristic(BluetoothGattCharacteristic characteristic, BleDeviceService.OperateType type) {
-        if (isGattValid()) {
-            if (type != BleDeviceService.OperateType.Read) {
-                Log.e(TAG, "The process is wrong");
-            }
-            mBluetoothGatt.readCharacteristic(characteristic);
         }
     }
 
@@ -190,6 +203,7 @@ public class BleDeviceOperator {
                 return (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
                         && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0;
         }
+        Log.e(TAG, " Operation type is not support for the charachteristic");
         return false;
     }
 

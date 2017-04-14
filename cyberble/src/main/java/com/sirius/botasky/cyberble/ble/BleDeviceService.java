@@ -14,10 +14,23 @@ public class BleDeviceService {
 
     private boolean isCharacteristicOperating = false;
 
+    private byte[] writeData;
+
     public BleDeviceService(String mDeviceAddress,UUID mCharacteristicUUID, OperateType operateType) {
         this.mDeviceAddress = mDeviceAddress;
         this.mCharacteristicUUID = mCharacteristicUUID;
         this.mOperationType = operateType;
+    }
+
+    public BleDeviceService(String mDeviceAddress, UUID mCharacteristicUUID, OperateType mOperationType, byte[] writeData) {
+        this.mDeviceAddress = mDeviceAddress;
+        this.mCharacteristicUUID = mCharacteristicUUID;
+        this.mOperationType = mOperationType;
+        this.writeData = writeData;
+    }
+
+    public byte[] getWriteData() {
+        return writeData;
     }
 
     public String getmDeviceAddress() {
@@ -50,7 +63,8 @@ public class BleDeviceService {
     public enum OperateType{
         Read("Read"),
         Write("Write"),
-        Notify("Notify");
+        Notify("Notify"),
+        Indicate("Indicate");
 
 
         private String desc;

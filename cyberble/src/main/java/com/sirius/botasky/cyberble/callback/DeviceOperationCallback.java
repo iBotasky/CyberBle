@@ -16,5 +16,5 @@ public interface DeviceOperationCallback {
 
     void onDeviceCharacteristicWrite(String deviceAddress);
 
-    void onDeviceCharacteristicNotify(String deviceAddress);
+    void onDeviceCharacteristicNotify(String deviceAddress, BluetoothGattCharacteristic characteristic);
 }

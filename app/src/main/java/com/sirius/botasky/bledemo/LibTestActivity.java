@@ -154,6 +154,13 @@ public class LibTestActivity extends AppCompatActivity {
         discover = (ConstraintLayout) findViewById(R.id.discover);
         connect = (ConstraintLayout) findViewById(R.id.connect_layout);
 
+        mDisconnecte.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBleAdmin.disconnectDevice(mCurrentDeviceAddress);
+            }
+        });
+
         //开始扫描
         mScanButton.setOnClickListener(new View.OnClickListener() {
             @Override

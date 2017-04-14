@@ -174,6 +174,18 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         }
     }
 
+    public void disconnectDevice(String address){
+        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)){
+            mConnectedDevice.get(address).disconnectDevice();
+            mConnectedDevice.remove(address);
+        }
+    }
+
+
+    public void disconnectDevice(BluetoothDevice device){
+        disconnectDevice(device.getAddress());
+    }
+
     /**
      * 发现服务
      *
@@ -212,6 +224,8 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     }
 
 
+
+
     /**
      * 基础回调
      */
@@ -224,7 +238,6 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
             String address = gatt.getDevice().getAddress();
-            Log.e(TAG, " connect state is success");
             if (newState == STATE_CONNECTED) {
                 Log.e(TAG, " connect state is " + newState);
                 if (!mConnectedDevice.containsKey(address)) {

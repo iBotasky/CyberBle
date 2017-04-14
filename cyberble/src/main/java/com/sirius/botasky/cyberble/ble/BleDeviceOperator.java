@@ -73,6 +73,13 @@ public class BleDeviceOperator {
         mBluetoothGatt = mBluetoothDevice.connectGatt(mContext, false, mBluetoothGattCallback);
     }
 
+    public void disconnectDevice(){
+        mConnectState = STATE_DISCONNECTED;
+        mBluetoothGatt.disconnect();
+//        mBluetoothGatt.close();
+    }
+
+
     /**
      * 发现这个设备的服务
      */

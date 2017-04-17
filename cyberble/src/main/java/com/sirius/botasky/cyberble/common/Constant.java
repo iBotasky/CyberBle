@@ -1,4 +1,4 @@
-package com.sirius.botasky.cyberble;
+package com.sirius.botasky.cyberble.common;
 
 import java.util.UUID;
 

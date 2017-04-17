@@ -10,9 +10,8 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.util.Log;
 
-import com.sirius.botasky.cyberble.Constant;
+import com.sirius.botasky.cyberble.common.Constant;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

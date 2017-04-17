@@ -274,7 +274,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                // TODO: 14/04/2017 要去掉BleDeviceOperacitor 的service， 做好管理
+                mConnectedDevice.get(gatt.getDevice()).deleteService(characteristic);
                 mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
             }
         }

@@ -13,6 +13,7 @@ import android.util.Log;
 import com.sirius.botasky.cyberble.Constant;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class BleDeviceOperator {
     private Context mContext;
     private BluetoothGattCallback mBluetoothGattCallback;
     private int mConnectState = STATE_DISCONNECTED;
-    private List<BleDeviceService> mOpeationService;
+    private Set<BleDeviceService> mOpeationService;
     private List<BluetoothGattService> mBluetoothGattService;
 
 
@@ -62,7 +63,7 @@ public class BleDeviceOperator {
             throw new IllegalArgumentException("BleDevice is null");
         }
         mBluetoothDeviceAddress = mBluetoothDevice.getAddress();
-        mOpeationService = new ArrayList<>();
+        mOpeationService = new HashSet<>();
     }
 
     /**
@@ -176,6 +177,17 @@ public class BleDeviceOperator {
     }
 
 
+    /**
+     * 删除无用的service
+     * @param characteristic
+     */
+    public void deleteService(BluetoothGattCharacteristic characteristic){
+        for (BleDeviceService s : mOpeationService){
+            if (s.getmCharacteristicUUID().equals(characteristic.getUuid())){
+                mOpeationService.remove(s);
+            }
+        }
+    }
 
 
     /**

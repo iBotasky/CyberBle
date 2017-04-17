@@ -163,7 +163,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
      *
      * @param device
      */
-    public void connectDevice(final BluetoothDevice device) {
+    public synchronized void connectDevice(final BluetoothDevice device) {
         BleDeviceOperator deviceOperator = new BleDeviceOperator(device, mContext, mBluetoothCattCallback);
         deviceOperator.connectDevice();
         if (mConnectingDevice == null) {
@@ -174,15 +174,15 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         }
     }
 
-    public void disconnectDevice(String address){
-        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)){
+    public void disconnectDevice(String address) {
+        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
             mConnectedDevice.get(address).disconnectDevice();
             mConnectedDevice.remove(address);
         }
     }
 
 
-    public void disconnectDevice(BluetoothDevice device){
+    public void disconnectDevice(BluetoothDevice device) {
         disconnectDevice(device.getAddress());
     }
 
@@ -222,8 +222,6 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             mConnectedDevice.get(service.getmDeviceAddress()).processService(service);
         }
     }
-
-
 
 
     /**
@@ -282,10 +280,10 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
-            if (status == BluetoothGatt.GATT_SUCCESS){
+            if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, " write success");
                 mDeviceOperationCallback.onDeviceCharacteristicWrite(gatt.getDevice().getAddress());
-            }else {
+            } else {
                 Log.e(TAG, " write failure");
             }
 

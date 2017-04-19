@@ -30,7 +30,7 @@
 
 #### 2.2.1 先初始化BleAdmin
 
-```
+```java
 //mDeviceCallBack是蓝牙连接状态回调
 //mDegviceOperationCallback是蓝牙操作的回调，WRITE，NOTIFY等操作的回调
 mBleAdmin = new BleAdmin(this, mDeviceCallBack, mDeviceOperationCallback);
@@ -40,7 +40,7 @@ mBleAdmin = new BleAdmin(this, mDeviceCallBack, mDeviceOperationCallback);
 
 #### 2.2.2 SCAN
 
-```
+```java
 //打开蓝牙
 mBleAdmin.openBle();
 //开始搜索，设置搜索回调

@@ -1,5 +1,8 @@
 package com.sirius.botasky.cyberble.utils;
 
+/**
+ * BLE设备数据大多数都是byte[]跟十六进制的操作
+ */
 public class HexUtil {
 
     /**

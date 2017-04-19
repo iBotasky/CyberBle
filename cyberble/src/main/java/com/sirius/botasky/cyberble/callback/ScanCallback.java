@@ -9,5 +9,9 @@ import java.util.List;
  */
 
 public interface ScanCallback {
+    /**
+     * 扫描发现BLE设备的回调
+     * @param devices
+     */
     void onDeviceFound(List<BluetoothDevice> devices);
 }

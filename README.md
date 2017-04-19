@@ -6,9 +6,7 @@
 
 ![效果](https://github.com/iBotasky/BleDemo/blob/master/BleDemo.gif)
 
-效果地址，GITHUB显示不出来不知道什么鬼
 
-http://oktzkaa8p.bkt.clouddn.com/BleDemo.gif 
 
 
 

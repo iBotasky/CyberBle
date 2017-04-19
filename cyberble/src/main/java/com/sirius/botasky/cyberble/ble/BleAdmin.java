@@ -191,7 +191,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
      *
      * @param address
      */
-    public void discoverDeviceService(String address) {
+    public void discoverDeviceServices(String address) {
         if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
             mConnectedDevice.get(address).discoverDeviceServices();
         }
@@ -272,7 +272,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                mConnectedDevice.get(gatt.getDevice()).deleteService(characteristic);
+                mConnectedDevice.get(gatt.getDevice().getAddress()).deleteService(characteristic);
                 mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
             }
         }

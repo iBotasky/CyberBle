@@ -2,15 +2,9 @@
 
 ## 1.效果
 
-### 1.1 扫描
-
-![58f07d037f892.jpg](https://ooo.0o0.ooo/2017/04/14/58f07d037f892.jpg)
-
-### 1.2 连接后READ/NOTIFY/INDICATE/WRITE
-
-![58f07d361e3e0.jpg](https://ooo.0o0.ooo/2017/04/14/58f07d361e3e0.jpg)
 
 
+![效果](http://oktzkaa8p.bkt.clouddn.com/BleDemo.gif)
 
 
 

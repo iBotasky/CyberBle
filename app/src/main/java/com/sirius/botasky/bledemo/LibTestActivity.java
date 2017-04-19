@@ -50,13 +50,17 @@ public class LibTestActivity extends AppCompatActivity {
     private ConstraintLayout discover, connect;
     private String mCurrentDeviceAddress;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
+
+
     private DeviceConnectStateCallback mDeviceCallBack = new DeviceConnectStateCallback() {
         @Override
         public void onDeviceConnected(final String address) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mBleAdmin.discoverDeviceService(address);
+                    //连接成功后去发现设备的服务。停止搜索
+                    mBleAdmin.discoverDeviceServices(address);
+                    mBleAdmin.stopScan();
                     discover.setVisibility(View.GONE);
                     connect.setVisibility(View.VISIBLE);
                 }
@@ -386,7 +390,6 @@ public class LibTestActivity extends AppCompatActivity {
                 viewHolder.deviceName.setText("Unknow");
             viewHolder.deviceAddress.setText(device.getAddress());
 
-            viewHolder.deviceRssi.setText("" + mDevicesRssi.get(devices.get(position).getAddress()));
 
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -407,14 +410,12 @@ public class LibTestActivity extends AppCompatActivity {
             private LinearLayout content;
             private TextView deviceName;
             private TextView deviceAddress;
-            private TextView deviceRssi;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 content = ((LinearLayout) itemView.findViewById(R.id.content));
                 deviceAddress = ((TextView) itemView.findViewById(R.id.device_address));
                 deviceName = (TextView) itemView.findViewById(R.id.device_name);
-                deviceRssi = (TextView) itemView.findViewById(R.id.device_rssi);
             }
 
         }

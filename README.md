@@ -40,7 +40,7 @@ mBleAdmin = new BleAdmin(this, mDeviceCallBack, mDeviceOperationCallback);
 
 #### 2.2.2 SCAN
 
-```java
+```Java
 //打开蓝牙
 mBleAdmin.openBle();
 //开始搜索，设置搜索回调

@@ -132,6 +132,77 @@ mWrite.setOnClickListener(new View.OnClickListener() {
 
 
 
+### 2.3回调（都要在主线程运行）
+
+#### 2.3.1 连接状态回调
+
+```java
+private DeviceConnectStateCallback mDeviceCallBack = new DeviceConnectStateCallback() {
+    @Override
+    public void onDeviceConnected(final String address) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //连接成功后去发现设备的服务。停止搜索
+                mBleAdmin.discoverDeviceServices(address);
+                mBleAdmin.stopScan();
+                discover.setVisibility(View.GONE);
+                connect.setVisibility(View.VISIBLE);
+            }
+        });
+
+    }
+
+    @Override
+    public void onDeviceDisconnected() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              //设备断开连接的回调
+                discover.setVisibility(View.VISIBLE);
+                connect.setVisibility(View.GONE);
+            }
+        });
+
+    }
+};
+```
+
+
+
+#### 2.3.2 DiscoveryServices/READ/WRITE/NOTIFY结果回调，都是只有成功才返回,这些接口设计还有一些不完善的地方。
+
+```java
+private DeviceOperationCallback mDeviceOperationCallback = new DeviceOperationCallback() {
+    @Override
+    public void onDeviceServiceDiscover(String deviceAddress, List<BluetoothGattService> services) {
+      //发现服务回调
+        displayGattServices(services);
+    }
+
+    @Override
+    public void onDeviceCharacteristicRead(String deviceAddress, BluetoothGattCharacteristic characteristic) {
+      //读操作回调
+        displayData(characteristic);
+    }
+
+    @Override
+    public void onDeviceCharacteristicWrite(String deviceAddress) {
+		//写操作回调
+    }
+
+    @Override
+    public void onDeviceCharacteristicNotify(String deviceAddress, BluetoothGattCharacteristic characteristic) {
+      //Notify得到的回调
+        displayData(characteristic);
+
+    }
+};
+```
+
+
+
+
 
 
 

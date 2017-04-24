@@ -251,7 +251,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
                 if (mConnectingDevice.containsKey(address)) {
                     mConnectingDevice.remove(address);
                 }
-                mDeviceCallback.onDeviceDisconnected();
+                mDeviceCallback.onDeviceDisconnected(address);
             }
 
 
@@ -263,7 +263,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             String address = gatt.getDevice().getAddress();
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mConnectedDevice.get(address).setSerivce();
-                mDeviceOperationCallback.onDeviceServiceDiscover(address, gatt.getServices());
+                mDeviceOperationCallback.onDeviceServiceDiscover(true, address, gatt.getServices());
+            } else {
+                mDeviceOperationCallback.onDeviceServiceDiscover(false, address, null);
             }
 
         }
@@ -273,7 +275,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             super.onCharacteristicRead(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 mConnectedDevice.get(gatt.getDevice().getAddress()).deleteService(characteristic);
-                mDeviceOperationCallback.onDeviceCharacteristicRead(gatt.getDevice().getAddress(), characteristic);
+                mDeviceOperationCallback.onDeviceCharacteristicRead(true, gatt.getDevice().getAddress(), characteristic);
+            } else {
+                mDeviceOperationCallback.onDeviceCharacteristicRead(false, gatt.getDevice().getAddress(), characteristic);
             }
         }
 
@@ -282,9 +286,11 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             super.onCharacteristicWrite(gatt, characteristic, status);
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, " write success");
-                mDeviceOperationCallback.onDeviceCharacteristicWrite(gatt.getDevice().getAddress());
+                mDeviceOperationCallback.onDeviceCharacteristicWrite(true, gatt.getDevice().getAddress(), characteristic);
             } else {
+                mDeviceOperationCallback.onDeviceCharacteristicWrite(false, gatt.getDevice().getAddress(), characteristic);
                 Log.e(TAG, " write failure");
+
             }
 
         }

@@ -69,7 +69,7 @@ public class LibTestActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDeviceDisconnected() {
+        public void onDeviceDisconnected(String address) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -83,17 +83,21 @@ public class LibTestActivity extends AppCompatActivity {
 
     private DeviceOperationCallback mDeviceOperationCallback = new DeviceOperationCallback() {
         @Override
-        public void onDeviceServiceDiscover(String deviceAddress, List<BluetoothGattService> services) {
-            displayGattServices(services);
+        public void onDeviceServiceDiscover(boolean isSuccess, String deviceAddress, List<BluetoothGattService> services) {
+            if (isSuccess) {
+                displayGattServices(services);
+            }
         }
 
         @Override
-        public void onDeviceCharacteristicRead(String deviceAddress, BluetoothGattCharacteristic characteristic) {
-            displayData(characteristic);
+        public void onDeviceCharacteristicRead(boolean isSuccess, String deviceAddress, BluetoothGattCharacteristic characteristic) {
+            if (isSuccess) {
+                displayData(characteristic);
+            }
         }
 
         @Override
-        public void onDeviceCharacteristicWrite(String deviceAddress) {
+        public void onDeviceCharacteristicWrite(boolean isSuccess, String deviceAddress, BluetoothGattCharacteristic characteristic) {
 
         }
 

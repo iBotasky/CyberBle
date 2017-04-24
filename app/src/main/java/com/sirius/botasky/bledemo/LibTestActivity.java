@@ -21,6 +21,7 @@ import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sirius.botasky.cyberble.ble.BleAdmin;
 import com.sirius.botasky.cyberble.ble.BleDeviceService;
@@ -220,6 +221,7 @@ public class LibTestActivity extends AppCompatActivity {
 //                                setCharacteristicNotification(mNotifyCharacteristic, false);
                                 mNotifyCharacteristic = null;
                             }
+                            Toast.makeText(LibTestActivity.this, "这是一个READ特征，开启读特征", Toast.LENGTH_SHORT).show();
                             //开启读特征
                             mBleAdmin.processDeviceService(new BleDeviceService(
                                     mCurrentDeviceAddress,
@@ -229,13 +231,13 @@ public class LibTestActivity extends AppCompatActivity {
                         }
                         if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
                             mNotifyCharacteristic = characteristic;
+                            Toast.makeText(LibTestActivity.this, "这是一个NOTIFY特征，开启读特征", Toast.LENGTH_SHORT).show();
                             mBleAdmin.processDeviceService(new BleDeviceService(mCurrentDeviceAddress, characteristic.getUuid(), BleDeviceService.OperateType.Notify));
                         }
-//                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
-//                                && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0){
-//                            Log.e(TAG, "Characteristic this is a write characteristic");
-//                            writeCharacteristic(characteristic);
-//                        }
+                        if ((characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE) != 0
+                                && (characteristic.getProperties() & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) != 0){
+                            Toast.makeText(LibTestActivity.this, "这是一个WRITE特征", Toast.LENGTH_SHORT).show();
+                        }
 
                         return true;
                     }

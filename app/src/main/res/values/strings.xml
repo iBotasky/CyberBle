@@ -3,4 +3,5 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_connect">ConnectActivity</string>
     <string name="title_activity_lib_test">LibTestActivity</string>
+    <string name="title_activity_main">MainActivity</string>
 </resources>

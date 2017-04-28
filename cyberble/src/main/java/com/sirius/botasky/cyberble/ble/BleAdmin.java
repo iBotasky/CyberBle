@@ -45,6 +45,13 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     private DeviceConnectStateCallback mDeviceCallback;
     private DeviceOperationCallback mDeviceOperationCallback;
 
+    private boolean isScanning = false;
+
+    /**
+     * @param mContext
+     * @param deviceConnectCallback
+     * @param mDeviceOperationCallback
+     */
     public BleAdmin(Context mContext, DeviceConnectStateCallback deviceConnectCallback, DeviceOperationCallback mDeviceOperationCallback) {
         this.mContext = mContext;
         this.mDeviceCallback = deviceConnectCallback;
@@ -52,8 +59,22 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         initialize();
     }
 
-    public void setScanCallBack(ScanCallback mScanCallBack) {
-        this.mScanCallBack = mScanCallBack;
+    /**
+     * @param mContext
+     */
+    public BleAdmin(Context mContext) {
+        this.mContext = mContext;
+        initialize();
+    }
+
+    /**
+     * 蓝牙操作回调
+     *
+     * @param mDeviceOperationCallback
+     */
+    public void setCallbacks(DeviceOperationCallback mDeviceOperationCallback, DeviceConnectStateCallback deviceConnectStateCallback) {
+        this.mDeviceOperationCallback = mDeviceOperationCallback;
+        this.mDeviceCallback = deviceConnectStateCallback;
     }
 
     /**
@@ -113,6 +134,10 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
     }
 
     private void startScan(UUID[] specify) {
+        if (isScanning){
+            return;
+        }
+        isScanning = true;
         //初始化mScanDevices
         mDeviceCount = 0;
         if (mScanDevices == null) {
@@ -131,6 +156,7 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
      * 取消查找
      */
     public void stopScan() {
+        isScanning = false;
         mBluetoothAdapter.stopLeScan(this);
     }
 
@@ -197,20 +223,6 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         }
     }
 
-//    /**
-//     * 开启读特征
-//     *
-//     * @param address
-//     * @param characteristic
-//     */
-//    public void readDeviceService(String address, BluetoothGattCharacteristic characteristic) {
-//        if (!isReadCharacteristic(characteristic)) {
-//            throw new IllegalArgumentException("The characteris is not a read charachteristic");
-//        }
-//        if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
-//            mConnectedDevice.get(address).
-//        }
-//    }
 
     /**
      * 蓝牙操作服务，

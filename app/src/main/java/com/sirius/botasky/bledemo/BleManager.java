@@ -8,11 +8,13 @@ import android.content.Context;
 import com.sirius.botasky.bledemo.callbacks.ConnectResultCallback;
 import com.sirius.botasky.bledemo.callbacks.OperationResultCallback;
 import com.sirius.botasky.cyberble.ble.BleAdmin;
+import com.sirius.botasky.cyberble.ble.BleDeviceService;
 import com.sirius.botasky.cyberble.callback.DeviceConnectStateCallback;
 import com.sirius.botasky.cyberble.callback.DeviceOperationCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by botasky on 28/04/2017.
@@ -22,6 +24,7 @@ public class BleManager {
     private static BleAdmin mBleAdmin;
     private static BleManager mInstance;
     private static Context mContext;
+    private String mCurrentConnectAddress;
 
     private DeviceConnectStateCallback mDeviceConnectStateCallback = new DeviceConnectStateCallback() {
         @Override
@@ -93,13 +96,28 @@ public class BleManager {
 
 
     public void connect(BluetoothDevice device) {
+        mCurrentConnectAddress = device.getAddress();
         mBleAdmin.connectDevice(device);
         mBleAdmin.stopScan();
         mBleAdmin.setCallbacks(mDeviceOperationCallback, mDeviceConnectStateCallback);
     }
 
-    public void disconnect(String address){
-        mBleAdmin.disconnectDevice(address);
+    public void disconnect(){
+        mBleAdmin.disconnectDevice(mCurrentConnectAddress);
+        mCurrentConnectAddress = "";
     }
 
+
+    public void discoverCurrentDeviceServices(){
+        mBleAdmin.discoverDeviceServices(mCurrentConnectAddress);
+    }
+
+
+    public void startReadCharacteristic(UUID uuid){
+        mBleAdmin.processDeviceService(new BleDeviceService(mCurrentConnectAddress, uuid, BleDeviceService.OperateType.Read));
+    }
+
+    public void startNotifyCharacteristic(UUID uuid){
+        mBleAdmin.processDeviceService(new BleDeviceService(mCurrentConnectAddress, uuid, BleDeviceService.OperateType.Notify));
+    }
 }

@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtnStartScan, mBtnStopScan;
     private RecyclerView mRvDevicesList;
     private BleManager mBleManager;
-    private String mCurrentDeviceAddress;
     private BleDeviceAdapter mRecyclerAdapter;
 
     private ProgressDialog mConnectingDialog;
@@ -71,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
         mBtnStartScan = (Button) findViewById(R.id.btn_start_scan);
         mBtnStopScan = (Button) findViewById(R.id.btn_stop_scan);
         mRvDevicesList = (RecyclerView) findViewById(R.id.rv_devices);
@@ -82,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         mConnectingDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialog) {
-                mBleManager.disconnect(mCurrentDeviceAddress);
+                mBleManager.disconnect();
             }
         });
 
@@ -133,8 +131,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
     private class BleDeviceAdapter extends RecyclerView.Adapter<BleDeviceAdapter.ViewHolder> {
         private List<BluetoothDevice> devices;
         private LayoutInflater mInflator;
@@ -174,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
             viewHolder.content.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mCurrentDeviceAddress = device.getAddress();
                     mBleManager.connect(device);
                     mConnectingDialog.show();
                 }

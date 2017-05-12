@@ -203,6 +203,10 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
         }
     }
 
+    /**
+     * 断开已连接或者取消连接中的设备
+     * @param address
+     */
     public void disconnectDevice(String address) {
         if (mConnectedDevice != null && mConnectedDevice.containsKey(address)) {
             mConnectedDevice.get(address).disconnectDevice();

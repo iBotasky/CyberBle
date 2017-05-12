@@ -1,8 +1,11 @@
 package com.sirius.botasky.bledemo;
 
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -34,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private String mCurrentDeviceAddress;
     private BleDeviceAdapter mRecyclerAdapter;
 
+    private ProgressDialog mConnectingDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,11 +53,17 @@ public class MainActivity extends AppCompatActivity {
         //设置监听
         mBleManager.setmConnectResultCallback(new ConnectResultCallback() {
             @Override
-            public void connectResult(final String results) {
+            public void connectResult(final String results, final boolean isConnect) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(MainActivity.this, results, Toast.LENGTH_SHORT).show();
+                        if (mConnectingDialog.isShowing()) {
+                            mConnectingDialog.dismiss();
+                        }
+                        if (isConnect){
+                            startActivity(new Intent(MainActivity.this, OperationActivity.class));
+                        }
                     }
                 });
 
@@ -64,6 +75,16 @@ public class MainActivity extends AppCompatActivity {
         mBtnStartScan = (Button) findViewById(R.id.btn_start_scan);
         mBtnStopScan = (Button) findViewById(R.id.btn_stop_scan);
         mRvDevicesList = (RecyclerView) findViewById(R.id.rv_devices);
+
+        mConnectingDialog = new ProgressDialog(this);
+        mConnectingDialog.setCancelable(true);
+        mConnectingDialog.setMessage("加载中...");
+        mConnectingDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                mBleManager.disconnect(mCurrentDeviceAddress);
+            }
+        });
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRvDevicesList.setLayoutManager(linearLayoutManager);
@@ -155,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     mCurrentDeviceAddress = device.getAddress();
                     mBleManager.connect(device);
+                    mConnectingDialog.show();
                 }
             });
         }

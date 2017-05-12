@@ -26,12 +26,12 @@ public class BleManager {
     private DeviceConnectStateCallback mDeviceConnectStateCallback = new DeviceConnectStateCallback() {
         @Override
         public void onDeviceConnected(String address) {
-            mConnectResultCallback.connectResult("地址：" + address + "连接成功");
+            mConnectResultCallback.connectResult("地址：" + address + "连接成功", true);
         }
 
         @Override
         public void onDeviceDisconnected(String address) {
-            mConnectResultCallback.connectResult("地址：" + address + "断开连接");
+            mConnectResultCallback.connectResult("地址：" + address + "断开连接", false);
         }
     };
 
@@ -94,7 +94,12 @@ public class BleManager {
 
     public void connect(BluetoothDevice device) {
         mBleAdmin.connectDevice(device);
+        mBleAdmin.stopScan();
         mBleAdmin.setCallbacks(mDeviceOperationCallback, mDeviceConnectStateCallback);
+    }
+
+    public void disconnect(String address){
+        mBleAdmin.disconnectDevice(address);
     }
 
 }

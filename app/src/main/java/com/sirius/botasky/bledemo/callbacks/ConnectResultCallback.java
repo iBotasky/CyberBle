@@ -5,5 +5,5 @@ package com.sirius.botasky.bledemo.callbacks;
  */
 
 public interface ConnectResultCallback {
-    void connectResult(String results);
+    void connectResult(String results, boolean isConnect);
 }

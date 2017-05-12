@@ -208,6 +208,11 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
             mConnectedDevice.get(address).disconnectDevice();
             mConnectedDevice.remove(address);
         }
+
+        if (mConnectedDevice != null && mConnectingDevice.containsKey(address)){
+            mConnectingDevice.get(address).disconnectDevice();
+            mConnectingDevice.remove(address);
+        }
     }
 
 

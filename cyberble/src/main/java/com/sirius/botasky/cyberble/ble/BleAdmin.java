@@ -156,6 +156,9 @@ public class BleAdmin implements BluetoothAdapter.LeScanCallback {
      * 取消查找
      */
     public void stopScan() {
+        if (!isScanning){
+            return;
+        }
         isScanning = false;
         mBluetoothAdapter.stopLeScan(this);
     }

@@ -1,6 +1,8 @@
 package com.sirius.botasky.bledemo;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -14,7 +16,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.sirius.botasky.bledemo.callbacks.ConnectResultCallback;
+import com.sirius.botasky.bledemo.callbacks.OperationResultCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
@@ -39,6 +44,20 @@ public class MainActivity extends AppCompatActivity {
         //蓝牙管理单例初始化
         BleManager.init(getApplicationContext());
         mBleManager = BleManager.getInstance();
+
+        //设置监听
+        mBleManager.setmConnectResultCallback(new ConnectResultCallback() {
+            @Override
+            public void connectResult(final String results) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, results, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
+        });
 
 
 
@@ -135,8 +154,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     mCurrentDeviceAddress = device.getAddress();
-//                    mBleAdmin.connectDevice(device.getAddress());
-//                    mBleAdmin.connectDevice(device);
+                    mBleManager.connect(device);
                 }
             });
         }
@@ -157,7 +175,6 @@ public class MainActivity extends AppCompatActivity {
                 deviceAddress = ((TextView) itemView.findViewById(R.id.device_address));
                 deviceName = (TextView) itemView.findViewById(R.id.device_name);
             }
-
         }
     }
 }

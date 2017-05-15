@@ -2,9 +2,13 @@
 
 ## 1.效果
 
+### 1.1Scan->Connect->Read Operation->Disconnect
+
 
 
 ![效果](https://github.com/iBotasky/BleDemo/blob/master/BleDemo.gif)
+### 1.2 Write Operation->Notfiy Operation ->Disconnect
+暂无
 
 
 

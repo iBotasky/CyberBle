@@ -36,7 +36,7 @@ dependencies {
 //Maven设置
 ext {
     bintrayRepo = 'maven' //maven仓库名称，直接写maven即可
-    bintrayName = 'library' //项目名称(包名)
+    bintrayName = 'com.sirius.botasky.cyberble' //项目名称(包名)
 
     publishedGroupId = 'com.sirius.botasky' //组织id
     libraryName = 'cyberble' //项目名称
@@ -49,7 +49,7 @@ ext {
     //项目github上的git仓库地址
     gitUrl = 'https://github.com/iBotasky/BleDemo.git'
     //版本号
-    libraryVersion = '1.0.0'
+    libraryVersion = '1.0.1'
     //开发者信息设置(任意)
     developerId = 'botasky'
     developerName = 'botasky'

@@ -16,6 +16,27 @@
 
 ## 2.使用
 
+### 2.0 添加依赖
+
+```groovy
+repositories {
+    jcenter() //使用jcenter
+    mavenCentral(); //使用maven
+    //maven远程仓库地址
+    maven {
+        url 'https://dl.bintray.com/botasky/maven'
+    }
+}
+
+dependencies {
+    compile 'com.sirius.botasky:cyberble:1.0.1'
+}
+```
+
+
+
+
+
 ### 2.1 类说明
 
 > BleAdmin.java ,蓝牙设备控制类，用来做蓝牙设备管理，扫描等

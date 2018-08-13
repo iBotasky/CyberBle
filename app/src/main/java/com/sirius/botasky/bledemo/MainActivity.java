@@ -1,18 +1,19 @@
 package com.sirius.botasky.bledemo;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sirius.botasky.bledemo.callbacks.ConnectResultCallback;
-import com.sirius.botasky.bledemo.callbacks.OperationResultCallback;
 import com.sirius.botasky.cyberble.callback.ScanCallback;
 
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        askForPermissions();
         setSupportActionBar(toolbar);
         //蓝牙管理单例初始化
         BleManager.init(getApplicationContext());
@@ -106,6 +107,22 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void askForPermissions(){
+        //Android6.0需要动态申请权限
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //请求权限
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION},101);
+//            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION)) {
+//                //判断是否跟用户做一个说明
+//                DialogUtils.shortT(getApplicationContext(), "需要蓝牙权限");
+//            }
+        }
+    }
+
+
     /**
      * 开始搜索
      */
@@ -116,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mRecyclerAdapter.setDevices(devices);
+                        Log.e("DeviceSize", " " + devices.size());
+//                        mRecyclerAdapter.setDevices(devices);
                     }
                 });
             }
